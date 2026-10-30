@@ -1,0 +1,126 @@
+[
+  {
+    "id": "DPDF",
+    "name": "DPDF 2026/2027 — Analista TI (Redes)",
+    "short_name": "DPDF",
+    "cargo": "Analista de Apoio: Informática – Redes",
+    "banca": "Instituto ACCESS",
+    "exam_date": "2027-02-21",
+    "daily_target_hours": 2.0,
+    "weekly_target_hours": 10.0,
+    "status": "Foco Total 🔥",
+    "subjects": {
+      "Conhecimentos Específicos (Peso 2)": [
+        "Redes de Computadores",
+        "Sistemas Operacionais e Serviços",
+        "Hardware e Infraestrutura",
+        "Armazenamento e Backup",
+        "Virtualização e Nuvem",
+        "Segurança da Informação",
+        "Monitoramento e Continuidade",
+        "Bancos de Dados em Infra",
+        "Gestão e Governança de TI",
+        "Fiscalização de Contratos de TIC"
+      ],
+      "Conhecimentos Básicos (Peso 1)": [
+        "Regime Jurídico dos Servidores (LC 840/2011)",
+        "LODF e LC nº 828/2010",
+        "Língua Portuguesa",
+        "Lei Maria da Penha (Lei 11.340/2006)",
+        "Conhecimentos do DF e Mulheres",
+        "Noções de Informática",
+        "Noções de Primeiros Socorros"
+      ],
+      "Discursivas": [
+        "Questão Discursiva Técnica TI (10 pts)",
+        "Dissertação Geral (20 pts)"
+      ]
+    }
+  },
+  {
+    "id": "CGU",
+    "name": "CGU 2026/2027 — Auditor Federal (TI)",
+    "short_name": "CGU",
+    "cargo": "Auditor Federal de Finanças e Controle — TI",
+    "banca": "Cebraspe (Provável)",
+    "exam_date": "2027-06-30",
+    "daily_target_hours": 2.0,
+    "weekly_target_hours": 10.0,
+    "status": "Planejado ⏳",
+    "subjects": {
+      "Conhecimentos Específicos TI": [
+        "Engenharia de Software e Agilidade",
+        "Banco de Dados e Big Data",
+        "Segurança da Informação e Cibersegurança",
+        "Governança e Gestão de TI (COBIT/ITIL)",
+        "Ciência de Dados e Inteligência Artificial",
+        "Infraestrutura, Redes e Nuvem"
+      ],
+      "Conhecimentos Básicos e Gerais": [
+        "Língua Portuguesa e Redação Oficial",
+        "Língua Inglesa",
+        "Direito Constitucional",
+        "Direito Administrativo",
+        "Administração Pública e Políticas Públicas",
+        "Auditoria Governamental e Controle Interno"
+      ],
+      "Discursivas": [
+        "Estudo de Caso / Discursiva Técnica TI",
+        "Dissertação de Controle Público"
+      ]
+    }
+  },
+  {
+    "id": "DATAPREV",
+    "name": "DATAPREV 2026 — Analista de TI",
+    "short_name": "DATAPREV",
+    "cargo": "Analista de Tecnologia da Informação",
+    "banca": "FGV",
+    "exam_date": "2026-12-31",
+    "daily_target_hours": 2.0,
+    "weekly_target_hours": 10.0,
+    "status": "Stand-by ⏳",
+    "subjects": {
+      "Específicos": [
+        "Desenvolvimento e Arquitetura de Software",
+        "Bancos de Dados Relacionais e NoSQL",
+        "DevOps, CI/CD e Contêineres",
+        "Segurança da Informação",
+        "Governança de TI"
+      ],
+      "Básicos": [
+        "Língua Portuguesa (FGV)",
+        "Raciocínio Lógico-Matemático",
+        "Legislação e Ética Pública"
+      ]
+    }
+  },
+  {
+    "id": "BASE_GERAL",
+    "name": "Ciclo Base Contínuo — TI & Gerais",
+    "short_name": "Base Geral",
+    "cargo": "Aperfeiçoamento Contínuo",
+    "banca": "Geral / Múltiplas",
+    "exam_date": "",
+    "daily_target_hours": 2.0,
+    "weekly_target_hours": 10.0,
+    "status": "Permanente 🌐",
+    "subjects": {
+      "Tecnologia da Informação": [
+        "Redes de Computadores",
+        "Sistemas Operacionais (Linux/Windows)",
+        "Bancos de Dados e SQL",
+        "Engenharia de Software",
+        "Segurança da Informação",
+        "Governança de TI",
+        "Cloud Computing & DevOps"
+      ],
+      "Disciplinas Gerais": [
+        "Língua Portuguesa",
+        "Raciocínio Lógico-Matemático",
+        "Direito Constitucional",
+        "Direito Administrativo"
+      ]
+    }
+  }
+]

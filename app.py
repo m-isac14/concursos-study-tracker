@@ -6,6 +6,13 @@ from datetime import datetime, date, timedelta
 import json
 import os
 
+from github_sync import (
+    get_github_config,
+    fetch_file_from_github,
+    commit_file_to_github,
+    sync_session_to_obsidian_idempotent
+)
+
 # ==========================================
 # CONFIGURAÇÃO DA PÁGINA
 # ==========================================
@@ -45,11 +52,14 @@ st.markdown("""
         font-weight: 600;
         margin-right: 5px;
     }
+    .stProgress > div > div > div > div {
+        background-color: #1E88E5;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# CAMINHOS E ARQUIVOS
+# CAMINHOS E ARQUIVOS LOCAIS
 # ==========================================
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 SESSIONS_FILE = os.path.join(DATA_DIR, "sessions.json")
@@ -189,7 +199,7 @@ DEFAULT_CERTAMES = [
 ]
 
 # ==========================================
-# FUNÇÕES DE PERSISTÊNCIA
+# FUNÇÕES DE PERSISTÊNCIA LOCAL & NUVEM
 # ==========================================
 def ensure_data_dir():
     if not os.path.exists(DATA_DIR):
@@ -227,54 +237,56 @@ def save_sessions(sessions):
     with open(SESSIONS_FILE, "w", encoding="utf-8") as f:
         json.dump(sessions, f, ensure_ascii=False, indent=2)
 
-def sync_session_to_obsidian(session, cofre_dir):
-    """Grava o registro no Cofre Obsidian como nota markdown estruturada para Dataview."""
-    if not os.path.exists(cofre_dir):
-        return False, f"Diretório do cofre não encontrado: {cofre_dir}"
-    
-    sess_date = session["date"]
-    file_path = os.path.join(cofre_dir, f"{sess_date}.md")
-    certame_tag = session.get("certame_id", "Geral").lower()
-    
-    entry = f"""
-### ⏱️ [{session.get('certame_id', 'Geral')}] {session['subject']} — {session['duration_min']} min
-- **Certame:** {session.get('certame_name', session.get('certame_id', 'Geral'))}
-- **Bloco:** {session['block']}
-- **Tópico:** {session.get('topic', '-')}
-- **Duração:** {session['duration_min']} minutos ({session['duration_min']/60:.2f}h)
-- **Questões:** {session.get('questions_correct', 0)} / {session.get('questions_total', 0)} acertos ({session.get('accuracy_pct', 0)}%)
-"""
-    if session.get("notes"):
-        entry += f"- **Notas / Pegadinhas:** {session['notes']}\n"
+def pull_from_github_and_merge():
+    """Puxa a base de sessões do GitHub e mescla com as sessões locais."""
+    gh_cfg = get_github_config()
+    remote_data, sha, err = fetch_file_from_github(
+        repo=gh_cfg["repo"],
+        file_path="data/sessions.json",
+        branch=gh_cfg["branch"],
+        token=gh_cfg["token"]
+    )
+    if err:
+        return False, err
+    if remote_data is not None and isinstance(remote_data, list):
+        local_sessions = load_sessions()
+        local_map = {str(s.get("id")): s for s in local_sessions}
+        for s in remote_data:
+            local_map[str(s.get("id"))] = s
+        merged = sorted(list(local_map.values()), key=lambda x: str(x.get("date")), reverse=False)
+        save_sessions(merged)
+        st.session_state.sessions = merged
+        return True, f"{len(merged)} sessões sincronizadas com sucesso do GitHub!"
+    return False, "Nenhum dado retornado do GitHub."
 
-    if os.path.exists(file_path):
-        with open(file_path, "a", encoding="utf-8") as f:
-            f.write(entry)
-    else:
-        content = f"""---
-tags:
-  - registro-estudo
-  - concursos
-  - {certame_tag}
-date: {sess_date}
-certame: {session.get('certame_id', 'Geral')}
----
-
-# 📅 Registro de Estudo — {sess_date}
-
-Voltar para: [[06-Concursos-e-Estudos/00-HUB-CONCURSOS|00-HUB-CONCURSOS.md]] | [[06-Concursos-e-Estudos/plano-de-estudo-dpdf-2027|plano-de-estudo-dpdf-2027.md]]
-{entry}
-"""
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(content)
-            
-    return True, "Sincronizado com sucesso!"
+def push_to_github(commit_msg="refactor(data): sync sessions"):
+    """Envia a lista atual de sessões para o repositório GitHub via API REST."""
+    gh_cfg = get_github_config()
+    if not gh_cfg["token"]:
+        return False, "Token do GitHub não configurado."
+    sessions = load_sessions()
+    success, msg = commit_file_to_github(
+        repo=gh_cfg["repo"],
+        file_path="data/sessions.json",
+        data_obj=sessions,
+        commit_message=commit_msg,
+        branch=gh_cfg["branch"],
+        token=gh_cfg["token"]
+    )
+    return success, msg
 
 # Inicializa estado
 if "certames" not in st.session_state:
     st.session_state.certames = load_certames()
 if "sessions" not in st.session_state:
     st.session_state.sessions = load_sessions()
+
+# Auto-pull na inicialização se ainda não foi feito e se houver token
+if "initial_gh_pull_done" not in st.session_state:
+    st.session_state.initial_gh_pull_done = True
+    gh_cfg_init = get_github_config()
+    if gh_cfg_init["token"] and not st.session_state.sessions:
+        pull_from_github_and_merge()
 
 # Estado do cronômetro
 if "timer_running" not in st.session_state:
@@ -285,7 +297,7 @@ if "elapsed_seconds" not in st.session_state:
     st.session_state.elapsed_seconds = 0
 
 # ==========================================
-# SIDEBAR: SELETOR DE CERTAME & CRONÔMETRO
+# SIDEBAR: SELETOR, CRONÔMETRO E GITHUB
 # ==========================================
 with st.sidebar:
     st.image("https://img.icons8.com/fluency/96/graduation-cap.png", width=64)
@@ -304,16 +316,13 @@ with st.sidebar:
     certame_ativo_obj = None
     
     if visao_selecionada != "🌐 Toda a Minha Trajetória (Visão Consolidada)":
-        # Extrai certame selecionado
         idx_c = opcoes_visao.index(visao_selecionada) - 1
         certame_ativo_obj = st.session_state.certames[idx_c]
         filtro_certame_id = certame_ativo_obj["id"]
         
-        # Info do certame ativo
         st.markdown(f"**Banca:** {certame_ativo_obj.get('banca', 'A definir')}")
         st.markdown(f"**Cargo:** {certame_ativo_obj.get('cargo', '-')}")
         
-        # Contagem regressiva se tiver data
         if certame_ativo_obj.get("exam_date"):
             try:
                 dt_prova = datetime.strptime(certame_ativo_obj["exam_date"], "%Y-%m-%d")
@@ -359,6 +368,47 @@ with st.sidebar:
     segundos_cronometro = cur_elapsed % 60
     st.markdown(f"### `{minutos_cronometro:02d}:{segundos_cronometro:02d}`")
     
+    st.divider()
+    
+    # ☁️ PONTE GITHUB (PERSISTÊNCIA EM NUVEM)
+    st.subheader("☁️ Nuvem & GitHub Bridge")
+    gh_cfg = get_github_config()
+    
+    if gh_cfg["token"]:
+        st.success(f"🟢 Nuvem Conectada (`{gh_cfg['repo']}`)")
+    else:
+        st.caption(f"🟡 Repositório: `{gh_cfg['repo']}` (Modo Leitura)")
+        
+    col_gh_act1, col_gh_act2 = st.columns(2)
+    with col_gh_act1:
+        if st.button("📥 Puxar Nuvem", use_container_width=True, help="Baixa sessões salvas no GitHub"):
+            ok_p, msg_p = pull_from_github_and_merge()
+            if ok_p:
+                st.success(msg_p)
+                st.rerun()
+            else:
+                st.warning(msg_p)
+                
+    with col_gh_act2:
+        if st.button("📤 Enviar Nuvem", use_container_width=True, help="Envia sessões locais para o GitHub"):
+            ok_u, msg_u = push_to_github("manual sync from sidebar")
+            if ok_u:
+                st.success(msg_u)
+            else:
+                st.error(msg_u)
+                
+    with st.expander("🔑 Token de Acesso do GitHub (PAT)"):
+        token_input = st.text_input(
+            "GitHub Token:", 
+            value=st.session_state.get("custom_github_token", ""), 
+            type="password",
+            placeholder="ghp_...",
+            help="Cole um Personal Access Token com permissão 'repo' para permitir commits na nuvem."
+        )
+        if token_input:
+            st.session_state["custom_github_token"] = token_input
+        st.markdown("[Criar Token com 1 clique](https://github.com/settings/tokens/new?scopes=repo&description=Concursos+Study+Tracker)")
+
     st.divider()
     st.subheader("⚙️ Conexão Obsidian")
     cofre_path = st.text_input("Pasta do Cofre:", value=COFRE_DIR_DEFAULT)
@@ -586,7 +636,6 @@ with tab_reg:
     with st.form("form_registro_sessao", clear_on_submit=False):
         c_f0, c_f1 = st.columns(2)
         with c_f0:
-            # Seleção do Certame
             opcoes_certames_form = {c["id"]: c["name"] for c in st.session_state.certames}
             idx_default = 0
             if filtro_certame_id and filtro_certame_id in opcoes_certames_form:
@@ -601,7 +650,6 @@ with tab_reg:
             data_sessao = st.date_input("Data do Estudo:", value=date.today())
             
         with c_f1:
-            # Obtém matérias do certame escolhido
             c_obj_form = next((c for c in st.session_state.certames if c["id"] == certame_escolhido_id), st.session_state.certames[0])
             blocos_disponiveis = list(c_obj_form.get("subjects", {}).keys())
             bloco_selecionado = st.selectbox("Bloco / Área:", blocos_disponiveis if blocos_disponiveis else ["Geral"])
@@ -621,7 +669,7 @@ with tab_reg:
             q_corretas = st.number_input("Questões Acertadas:", min_value=0, max_value=300, value=0, step=1)
             
         notas = st.text_area("Anotações, Pontos Fortes, Pegadinhas de Banca:", placeholder="Registre observações importantes para o seu Second Brain...")
-        sync_cofre = st.checkbox("Sincronizar imediatamente com o Cofre Obsidian", value=True)
+        sync_cofre = st.checkbox("Sincronizar com o Cofre Obsidian (se disponível localmente)", value=True)
         
         submitted = st.form_submit_button("💾 Salvar Sessão", use_container_width=True)
         
@@ -653,12 +701,30 @@ with tab_reg:
                     st.session_state.elapsed_seconds = 0
                     st.session_state.timer_start = None
                     
+                # 1. Sincronização Local com o Obsidian (se cofre acessível)
                 msg_cofre = ""
                 if sync_cofre and cofre_conectado:
-                    ok, res = sync_session_to_obsidian(nova_sessao, cofre_path)
-                    msg_cofre = f" e {res}" if ok else f" (Aviso Cofre: {res})"
+                    ok_c, res_c = sync_session_to_obsidian_idempotent(nova_sessao, cofre_path)
+                    msg_cofre = f" | 🧠 Obsidian: {res_c}" if ok_c else f" | ⚠️ Obsidian: {res_c}"
+                
+                # 2. Sincronização em Nuvem via GitHub API
+                msg_gh = ""
+                gh_cfg_save = get_github_config()
+                if gh_cfg_save["token"]:
+                    commit_txt = f"feat(estudo): {nova_sessao['duration_min']}min em {nova_sessao['subject']} ({nova_sessao['certame_id']})"
+                    ok_gh, res_gh = commit_file_to_github(
+                        repo=gh_cfg_save["repo"],
+                        file_path="data/sessions.json",
+                        data_obj=st.session_state.sessions,
+                        commit_message=commit_txt,
+                        branch=gh_cfg_save["branch"],
+                        token=gh_cfg_save["token"]
+                    )
+                    msg_gh = f" | ☁️ GitHub: {res_gh}" if ok_gh else f" | ⚠️ GitHub: {res_gh}"
+                else:
+                    msg_gh = " | ℹ️ Nuvem: sem token para auto-commit (salvo localmente)"
                     
-                st.success(f"✅ Sessão registrada para **{opcoes_certames_form[certame_escolhido_id]}** ({duracao} min em {disciplina_selecionada}){msg_cofre}!")
+                st.success(f"✅ Sessão registrada para **{opcoes_certames_form[certame_escolhido_id]}** ({duracao} min em {disciplina_selecionada})!{msg_cofre}{msg_gh}")
                 st.rerun()
 
 # ------------------------------------------
@@ -706,23 +772,43 @@ with tab_hist:
         )
         
         st.divider()
-        col_exp1, col_exp2, col_exp3 = st.columns(3)
+        st.subheader("🔄 Sincronização em Nuvem (GitHub ↔ Obsidian)")
+        col_sync_a, col_sync_b = st.columns(2)
+        
+        with col_sync_a:
+            if st.button("📥 Puxar da Nuvem (GitHub) & Descarregar no Obsidian", use_container_width=True):
+                ok_pull, msg_pull = pull_from_github_and_merge()
+                if ok_pull:
+                    st.info(msg_pull)
+                else:
+                    st.warning(f"Aviso GitHub: {msg_pull}")
+                    
+                if cofre_conectado:
+                    count_obs = 0
+                    for s in st.session_state.sessions:
+                        ok_s, _ = sync_session_to_obsidian_idempotent(s, cofre_path)
+                        if ok_s:
+                            count_obs += 1
+                    st.success(f"🧠 {count_obs} sessões verificadas/sincronizadas com o Cofre em {cofre_path}!")
+                else:
+                    st.warning("Pasta do cofre não acessível neste ambiente para gravação direta.")
+                    
+        with col_sync_b:
+            if st.button("📤 Enviar Todo o Histórico Local para a Nuvem (GitHub)", use_container_width=True):
+                ok_push, msg_push = push_to_github(f"feat(data): backup completo de {len(st.session_state.sessions)} sessões")
+                if ok_push:
+                    st.success(f"☁️ {msg_push}")
+                else:
+                    st.error(f"Falha ao enviar: {msg_push}")
+                    
+        st.divider()
+        col_exp1, col_exp2 = st.columns(2)
         with col_exp1:
             csv_data = df_all.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Baixar Histórico Geral (CSV)", data=csv_data, file_name=f"estudos_geral_{date.today()}.csv", mime="text/csv", use_container_width=True)
         with col_exp2:
             json_data = json.dumps(st.session_state.sessions, ensure_ascii=False, indent=2).encode("utf-8")
             st.download_button("📥 Baixar Backup Geral (JSON)", data=json_data, file_name=f"backup_estudos_{date.today()}.json", mime="application/json", use_container_width=True)
-        with col_exp3:
-            if st.button("🔄 Ressincronizar Todo o Histórico com o Cofre", use_container_width=True):
-                if cofre_conectado:
-                    count = 0
-                    for s in st.session_state.sessions:
-                        sync_session_to_obsidian(s, cofre_path)
-                        count += 1
-                    st.success(f"✅ {count} sessões sincronizadas com o Cofre em {cofre_path}!")
-                else:
-                    st.error("Cofre não encontrado no caminho especificado.")
 
 # ------------------------------------------
 # TAB 4: GERENCIAR CERTAMES
@@ -731,7 +817,6 @@ with tab_certames:
     st.subheader("🏛️ Meus Certames & Projetos de Concurso")
     st.markdown("Aqui você pode gerenciar todos os concursos que acompanha ou criar novos certames conforme novos editais forem saindo.")
     
-    # Exibe lista de certames cadastrados
     for c in st.session_state.certames:
         with st.expander(f"📌 {c['name']} — Status: **{c.get('status', 'Ativo')}**"):
             st.markdown(f"- **ID:** `{c['id']}`")
@@ -795,12 +880,18 @@ with tab_certames:
 # TAB 5: INTEGRAÇÃO OBSIDIAN & DATAVIEW
 # ------------------------------------------
 with tab_obsidian:
-    st.subheader("🧠 Integração Viva com o seu Second Brain (Obsidian)")
-    st.markdown(f"""
-    Cada sessão salva nesta plataforma central é gravada com a etiqueta do certame correspondente em:  
-    `{COFRE_DIR_DEFAULT}\\<DATA>.md`
+    st.subheader("🧠 Como Funciona a Sincronização Nuvem ↔ GitHub ↔ Obsidian")
+    st.markdown("""
+    A arquitetura foi projetada para que você tenha total liberdade de registrar seus estudos de qualquer lugar sem risco de perda de dados:
     
-    Isso permite que você faça consultas no Obsidian para ver tanto a **sua trajetória inteira** quanto **filtros por certame específico** usando o **Dataview**.
+    1. **No Celular ou Navegador Externo (Streamlit Cloud):**
+       - Você abre o link do app no celular, estuda e registra a sessão.
+       - A aplicação executa um **commit automático** com a nova sessão diretamente no seu repositório GitHub (`m-isac14/concursos-study-tracker/data/sessions.json`).
+    2. **No seu Computador (com o Google Drive / Obsidian ativo):**
+       - Ao abrir o app no computador (ou rodar `iniciar_estudos.bat`), você clica em **"📥 Puxar da Nuvem & Descarregar no Obsidian"**.
+       - O app baixa tudo do GitHub e gera/atualiza as notas `.md` em `G:\\Meu Drive\\cofre\\06-Concursos-e-Estudos\\registros-de-estudo\\`.
+    3. **No Obsidian:**
+       - O plugin **Dataview** lê os metadados e monta relatórios dinâmicos instantâneos.
     """)
     
     st.divider()
