@@ -1,45 +1,49 @@
-# 🛡️ DPDF Study Tracker — Painel Inteligente de Estudos
+# 🎯 Central de Estudos — Plataforma Unificada de Concursos Públicos
 
-Aplicação web desenvolvida em **Streamlit (Python)** para gerenciar horas líquidas, desempenho por banca, cumprimento da meta diária de 2h e alocação de tempo (Regra 70/30) para o concurso da **Defensoria Pública do Distrito Federal (DPDF 2026/2027)** — Cargo 5: Analista de TI (Redes).
+Plataforma inteligente desenvolvida em **Python + Streamlit** para gerenciar a **trajetória completa de estudos para concursos públicos** do Isac, com suporte nativo a múltiplos certames (DPDF, CGU, DATAPREV, Ciclo Base TI) e integração contínua ao **Second Brain no Obsidian (`G:\Meu Drive\cofre`)**.
+
+---
+
+## 🏛️ Funcionalidades Centrais
+
+1. **🌐 Visão Consolidada da Trajetória:**
+   - Acompanhamento do total histórico de horas estudadas ao longo dos meses e anos.
+   - Gráfico de distribuição de tempo entre diferentes concursos.
+   - Rendimento unificado em questões por disciplina (ex.: histórico de acertos em Banco de Dados, Redes, Português, etc. independentemente do certame).
+2. **🎯 Modo Foco por Certame:**
+   - Selecione um certame específico (ex.: **DPDF 2026/2027**) para ver:
+     - Contagem regressiva da data da prova (21/02/2027);
+     - Meta diária (2h) e semanal (10h);
+     - Regra 70/30 (Específicos vs Básicos);
+     - Grade de matérias exatas do edital.
+3. **➕ Gestão Dinâmica de Certames:**
+   - Adicione novos concursos com poucos cliques (nome, cargo, banca, data da prova e matérias) conforme novos editais forem publicados.
+4. **🧠 Sincronização com o Obsidian (Dataview):**
+   - Salva automaticamente as sessões em `G:\Meu Drive\cofre\06-Concursos-e-Estudos\registros-de-estudo\<DATA>.md` com metadados do certame e tags `#dpdf`, `#cgu`, etc.
 
 ---
 
 ## 🚀 Como Rodar Localmente
 
-1. Abra a pasta do projeto:
-   ```cmd
-   cd "C:\Users\isacm\OneDrive\Desktop\Isac\Concursos\dpdf-study-tracker"
-   ```
-2. Dê dois cliques no arquivo `iniciar_estudos.bat` ou execute no terminal:
-   ```bash
-   venv\Scripts\activate
+1. Dê dois cliques em **`iniciar_estudos.bat`** ou execute:
+   ```powershell
+   cd "C:\Users\isacm\OneDrive\Desktop\Isac\Concursos\concursos-study-tracker"
+   .\venv\Scripts\activate
    streamlit run app.py
    ```
-3. O painel abrirá automaticamente no navegador em `http://localhost:8501`.
+2. O navegador abrirá automaticamente em `http://localhost:8501`.
 
 ---
 
-## ☁️ Como Hospedar Gratuitamente na Nuvem (Streamlit Community Cloud)
+## ☁️ Como Hospedar na Nuvem (Streamlit Community Cloud)
 
-1. Crie um repositório no seu GitHub (`https://github.com/m-isac14/dpdf-study-tracker`).
-2. Faça o commit e push dos arquivos:
-   ```bash
-   git init
+1. Crie um repositório no seu GitHub: `https://github.com/m-isac14/concursos-study-tracker`.
+2. Execute no terminal:
+   ```powershell
    git add .
-   git commit -m "feat: initial commit DPDF study tracker"
+   git commit -m "feat: central study platform with multi-certame support"
    git branch -M main
-   git remote add origin https://github.com/m-isac14/dpdf-study-tracker.git
+   git remote add origin https://github.com/m-isac14/concursos-study-tracker.git
    git push -u origin main
    ```
-3. Acesse [share.streamlit.io](https://share.streamlit.io/) e faça login com seu GitHub (`m-isac14`).
-4. Clique em **"New app"**, selecione o repositório `dpdf-study-tracker`, a branch `main` e o arquivo `app.py`.
-5. Clique em **"Deploy"**! Sua aplicação estará no ar 24/7 com URL pública acessível do celular ou de qualquer computador.
-
----
-
-## 🧠 Integração com o Cofre Obsidian
-
-Cada sessão salva grava automaticamente notas em:
-`G:\Meu Drive\cofre\06-Concursos-e-Estudos\registros-de-estudo\<DATA>.md`
-
-Compatível com o plugin **Dataview** do Obsidian para consultas dinâmicas.
+3. No [share.streamlit.io](https://share.streamlit.io/), selecione o repositório `concursos-study-tracker` e dê **Deploy**.

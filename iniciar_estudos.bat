@@ -1,8 +1,8 @@
 @echo off
-title DPDF Study Tracker - Isac
+title Central de Estudos - Concursos Publicos (Isac)
 cd /d "%~dp0"
 echo ========================================================
-echo   INICIANDO DPDF STUDY TRACKER - ISAC
+echo   INICIANDO CENTRAL DE ESTUDOS - TRAJETORIA CONCURSOS
 echo ========================================================
 echo.
 echo Abrindo painel no navegador...
