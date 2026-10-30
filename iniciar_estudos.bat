@@ -6,6 +6,11 @@ echo   INICIANDO CENTRAL DE ESTUDOS - TRAJETORIA CONCURSOS
 echo ========================================================
 echo.
 echo Abrindo painel no navegador...
-call "venv\Scripts\activate.bat"
-streamlit run app.py
+"%~dp0venv\Scripts\python.exe" -m streamlit run app.py
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo Ocorreu um erro ao iniciar. Tentando via activate...
+    call "%~dp0venv\Scripts\activate.bat"
+    python -m streamlit run app.py
+)
 pause
