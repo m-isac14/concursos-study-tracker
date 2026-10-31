@@ -983,6 +983,21 @@ with tab_plano:
 # ------------------------------------------
 with tab_reg:
     st.subheader("📝 Registrar Sessão de Estudo")
+
+    # Exibe confirmação persistente da última sessão registrada
+    if st.session_state.get("feedback_registro"):
+        fb = st.session_state["feedback_registro"]
+        if fb.get("status") == "success":
+            st.success(fb.get("mensagem", "Sessão salva com sucesso!"))
+            st.toast(fb.get("toast", "✅ Estudo salvo com sucesso!"), icon="🎉")
+        elif fb.get("status") == "warning":
+            st.warning(fb.get("mensagem", "Sessão registrada com ressalvas."))
+            st.toast(fb.get("toast", "⚠️ Salvo com avisos"), icon="⚠️")
+        elif fb.get("status") == "error":
+            st.error(fb.get("mensagem", "Erro ao salvar a sessão."))
+            st.toast(fb.get("toast", "❌ Falha no registro"), icon="❌")
+        # Limpa o feedback para não persistir infinitamente em outras abas
+        del st.session_state["feedback_registro"]
     
     c_f0, c_f1 = st.columns(2)
     with c_f0:
@@ -1105,57 +1120,71 @@ with tab_reg:
     
     if submitted:
         if q_total > 0 and q_corretas > q_total:
-            st.error("O número de acertos não pode ser maior que o total de questões!")
+            st.error("❌ O número de acertos não pode ser maior que o total de questões!")
         else:
-            acc = round((q_corretas / q_total * 100), 1) if q_total > 0 else 0.0
-            nova_sessao = {
-                "id": datetime.now().strftime("%Y%m%d%H%M%S"),
-                "certame_id": certame_escolhido_id,
-                "certame_name": opcoes_certames_form[certame_escolhido_id],
-                "date": str(data_sessao),
-                "block": bloco_selecionado,
-                "subject": disciplina_selecionada,
-                "topic": topico_final,
-                "study_type": tipo_estudo_selecionado,
-                "duration_min": int(duracao),
-                "questions_total": int(q_total),
-                "questions_correct": int(q_corretas),
-                "accuracy_pct": acc,
-                "notes": notas
-            }
-            
-            st.session_state.sessions.append(nova_sessao)
-            save_sessions(st.session_state.sessions)
-            
-            if minutos_cronometro > 0:
-                st.session_state.timer_running = False
-                st.session_state.elapsed_seconds = 0
-                st.session_state.timer_start = None
+            try:
+                acc = round((q_corretas / q_total * 100), 1) if q_total > 0 else 0.0
+                nova_sessao = {
+                    "id": datetime.now().strftime("%Y%m%d%H%M%S"),
+                    "certame_id": certame_escolhido_id,
+                    "certame_name": opcoes_certames_form[certame_escolhido_id],
+                    "date": str(data_sessao),
+                    "block": bloco_selecionado,
+                    "subject": disciplina_selecionada,
+                    "topic": topico_final,
+                    "study_type": tipo_estudo_selecionado,
+                    "duration_min": int(duracao),
+                    "questions_total": int(q_total),
+                    "questions_correct": int(q_corretas),
+                    "accuracy_pct": acc,
+                    "notes": notas
+                }
                 
-            # 1. Sincronização Local com o Obsidian (se cofre acessível)
-            msg_cofre = ""
-            if sync_cofre and cofre_conectado:
-                ok_c, res_c = sync_session_to_obsidian_idempotent(nova_sessao, cofre_path)
-                msg_cofre = f" | 🧠 Obsidian: {res_c}" if ok_c else f" | ⚠️ Obsidian: {res_c}"
-            
-            # 2. Sincronização em Nuvem via GitHub API
-            msg_gh = ""
-            gh_cfg_save = get_github_config()
-            if gh_cfg_save["token"]:
-                commit_txt = f"feat(estudo): {nova_sessao['duration_min']}min em {nova_sessao['subject']} ({nova_sessao['certame_id']})"
-                ok_gh, res_gh = commit_file_to_github(
-                    repo=gh_cfg_save["repo"],
-                    file_path="data/sessions.json",
-                    data_obj=st.session_state.sessions,
-                    commit_message=commit_txt,
-                    branch=gh_cfg_save["branch"],
-                    token=gh_cfg_save["token"]
-                )
-                msg_gh = f" | ☁️ GitHub: {res_gh}" if ok_gh else f" | ⚠️ GitHub: {res_gh}"
-            else:
-                msg_gh = " | ℹ️ Nuvem: sem token para auto-commit (salvo localmente)"
+                st.session_state.sessions.append(nova_sessao)
+                save_sessions(st.session_state.sessions)
                 
-            st.success(f"✅ Sessão registrada para **{opcoes_certames_form[certame_escolhido_id]}** ({duracao} min em {disciplina_selecionada})!{msg_cofre}{msg_gh}")
+                if minutos_cronometro > 0:
+                    st.session_state.timer_running = False
+                    st.session_state.elapsed_seconds = 0
+                    st.session_state.timer_start = None
+                    
+                # 1. Sincronização Local com o Obsidian (se cofre acessível)
+                msg_cofre = ""
+                if sync_cofre and cofre_conectado:
+                    ok_c, res_c = sync_session_to_obsidian_idempotent(nova_sessao, cofre_path)
+                    msg_cofre = f" | 🧠 Obsidian: {res_c}" if ok_c else f" | ⚠️ Obsidian: {res_c}"
+                
+                # 2. Sincronização em Nuvem via GitHub API
+                msg_gh = ""
+                gh_cfg_save = get_github_config()
+                if gh_cfg_save["token"]:
+                    commit_txt = f"feat(estudo): {nova_sessao['duration_min']}min em {nova_sessao['subject']} ({nova_sessao['certame_id']})"
+                    ok_gh, res_gh = commit_file_to_github(
+                        repo=gh_cfg_save["repo"],
+                        file_path="data/sessions.json",
+                        data_obj=st.session_state.sessions,
+                        commit_message=commit_txt,
+                        branch=gh_cfg_save["branch"],
+                        token=gh_cfg_save["token"]
+                    )
+                    msg_gh = f" | ☁️ GitHub: {res_gh}" if ok_gh else f" | ⚠️ GitHub: {res_gh}"
+                else:
+                    msg_gh = " | ℹ️ Nuvem: salvo localmente"
+                    
+                msg_completa = f"✅ **Sessão registrada com sucesso!** {duracao} min de **{tipo_estudo_selecionado}** em **{disciplina_selecionada}** ({opcoes_certames_form[certame_escolhido_id]}).{msg_cofre}{msg_gh}"
+                
+                st.session_state["feedback_registro"] = {
+                    "status": "success",
+                    "mensagem": msg_completa,
+                    "toast": f"Sessão de {disciplina_selecionada} salva!"
+                }
+            except Exception as e:
+                st.session_state["feedback_registro"] = {
+                    "status": "error",
+                    "mensagem": f"❌ **Falha ao salvar a sessão:** {str(e)}",
+                    "toast": "Erro ao salvar!"
+                }
+                
             st.rerun()
 
 # ------------------------------------------
