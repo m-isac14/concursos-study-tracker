@@ -633,99 +633,171 @@ with tab_dash:
 with tab_reg:
     st.subheader("📝 Registrar Sessão de Estudo")
     
-    with st.form("form_registro_sessao", clear_on_submit=False):
-        c_f0, c_f1 = st.columns(2)
-        with c_f0:
-            opcoes_certames_form = {c["id"]: c["name"] for c in st.session_state.certames}
-            idx_default = 0
-            if filtro_certame_id and filtro_certame_id in opcoes_certames_form:
-                idx_default = list(opcoes_certames_form.keys()).index(filtro_certame_id)
-                
-            certame_escolhido_id = st.selectbox(
-                "Certame Alvo:", 
-                options=list(opcoes_certames_form.keys()), 
-                format_func=lambda x: opcoes_certames_form[x],
-                index=idx_default
+    c_f0, c_f1 = st.columns(2)
+    with c_f0:
+        opcoes_certames_form = {c["id"]: c["name"] for c in st.session_state.certames}
+        idx_default = 0
+        if filtro_certame_id and filtro_certame_id in opcoes_certames_form:
+            idx_default = list(opcoes_certames_form.keys()).index(filtro_certame_id)
+            
+        certame_escolhido_id = st.selectbox(
+            "Certame Alvo:", 
+            options=list(opcoes_certames_form.keys()), 
+            format_func=lambda x: opcoes_certames_form[x],
+            index=idx_default,
+            key="reg_certame_id"
+        )
+        data_sessao = st.date_input("Data do Estudo:", value=date.today(), key="reg_data_sessao")
+        
+    with c_f1:
+        c_obj_form = next((c for c in st.session_state.certames if c["id"] == certame_escolhido_id), st.session_state.certames[0])
+        blocos_disponiveis = list(c_obj_form.get("subjects", {}).keys())
+        bloco_selecionado = st.selectbox(
+            "Bloco / Área:", 
+            blocos_disponiveis if blocos_disponiveis else ["Geral"],
+            key=f"reg_bloco_{certame_escolhido_id}"
+        )
+        
+        raw_disciplinas = c_obj_form.get("subjects", {}).get(bloco_selecionado, {})
+        if isinstance(raw_disciplinas, dict):
+            materias_disponiveis = list(raw_disciplinas.keys())
+        elif isinstance(raw_disciplinas, list):
+            materias_disponiveis = raw_disciplinas
+        else:
+            materias_disponiveis = ["Geral"]
+            
+        disciplina_selecionada = st.selectbox(
+            "Disciplina:", 
+            materias_disponiveis if materias_disponiveis else ["Geral"],
+            key=f"reg_disc_{certame_escolhido_id}_{bloco_selecionado}"
+        )
+        
+    # Extração e seleção automática do tópico oficial do edital
+    topicos_disponiveis = []
+    if isinstance(raw_disciplinas, dict):
+        topicos_cand = raw_disciplinas.get(disciplina_selecionada, [])
+        if isinstance(topicos_cand, list):
+            topicos_disponiveis = topicos_cand
+
+    if topicos_disponiveis:
+        col_top1, col_top2 = st.columns([1.6, 1.0])
+        with col_top1:
+            topico_escolhido = st.selectbox(
+                "Tópico Oficial do Edital (Conteúdo Programático):",
+                options=topicos_disponiveis + ["✏️ Outro (digitar manualmente)"],
+                key=f"reg_top_sel_{certame_escolhido_id}_{bloco_selecionado}_{disciplina_selecionada}",
+                help="Selecione o tópico específico previsto no edital ou escolha digitar um tema personalizado."
             )
-            data_sessao = st.date_input("Data do Estudo:", value=date.today())
-            
-        with c_f1:
-            c_obj_form = next((c for c in st.session_state.certames if c["id"] == certame_escolhido_id), st.session_state.certames[0])
-            blocos_disponiveis = list(c_obj_form.get("subjects", {}).keys())
-            bloco_selecionado = st.selectbox("Bloco / Área:", blocos_disponiveis if blocos_disponiveis else ["Geral"])
-            
-            materias_disponiveis = c_obj_form.get("subjects", {}).get(bloco_selecionado, ["Geral"])
-            disciplina_selecionada = st.selectbox("Disciplina:", materias_disponiveis)
-            
-        topico = st.text_input("Tópico Específico (ex: 'LC 840 - Regime Disciplinar' ou 'Modelo OSI x TCP/IP'):")
-        
-        c_q1, c_q2, c_q3 = st.columns(3)
-        with c_q1:
-            tempo_sugerido = minutos_cronometro if minutos_cronometro > 0 else 60
-            duracao = st.number_input("Duração em Minutos:", min_value=1, max_value=600, value=int(tempo_sugerido), step=5)
-        with c_q2:
-            q_total = st.number_input("Questões Feitas:", min_value=0, max_value=300, value=0, step=1)
-        with c_q3:
-            q_corretas = st.number_input("Questões Acertadas:", min_value=0, max_value=300, value=0, step=1)
-            
-        notas = st.text_area("Anotações, Pontos Fortes, Pegadinhas de Banca:", placeholder="Registre observações importantes para o seu Second Brain...")
-        sync_cofre = st.checkbox("Sincronizar com o Cofre Obsidian (se disponível localmente)", value=True)
-        
-        submitted = st.form_submit_button("💾 Salvar Sessão", use_container_width=True)
-        
-        if submitted:
-            if q_total > 0 and q_corretas > q_total:
-                st.error("O número de acertos não pode ser maior que o total de questões!")
+        with col_top2:
+            if topico_escolhido == "✏️ Outro (digitar manualmente)":
+                topico_custom = st.text_input(
+                    "Digite o Tópico Manualmente:",
+                    key=f"reg_top_custom_{certame_escolhido_id}_{bloco_selecionado}_{disciplina_selecionada}",
+                    placeholder="Ex: Simulado geral de bancas"
+                )
+                topico_final = topico_custom.strip() if topico_custom.strip() else disciplina_selecionada
             else:
-                acc = round((q_corretas / q_total * 100), 1) if q_total > 0 else 0.0
-                nova_sessao = {
-                    "id": datetime.now().strftime("%Y%m%d%H%M%S"),
-                    "certame_id": certame_escolhido_id,
-                    "certame_name": opcoes_certames_form[certame_escolhido_id],
-                    "date": str(data_sessao),
-                    "block": bloco_selecionado,
-                    "subject": disciplina_selecionada,
-                    "topic": topico,
-                    "duration_min": int(duracao),
-                    "questions_total": int(q_total),
-                    "questions_correct": int(q_corretas),
-                    "accuracy_pct": acc,
-                    "notes": notas
-                }
-                
-                st.session_state.sessions.append(nova_sessao)
-                save_sessions(st.session_state.sessions)
-                
-                if minutos_cronometro > 0:
-                    st.session_state.timer_running = False
-                    st.session_state.elapsed_seconds = 0
-                    st.session_state.timer_start = None
-                    
-                # 1. Sincronização Local com o Obsidian (se cofre acessível)
-                msg_cofre = ""
-                if sync_cofre and cofre_conectado:
-                    ok_c, res_c = sync_session_to_obsidian_idempotent(nova_sessao, cofre_path)
-                    msg_cofre = f" | 🧠 Obsidian: {res_c}" if ok_c else f" | ⚠️ Obsidian: {res_c}"
-                
-                # 2. Sincronização em Nuvem via GitHub API
-                msg_gh = ""
-                gh_cfg_save = get_github_config()
-                if gh_cfg_save["token"]:
-                    commit_txt = f"feat(estudo): {nova_sessao['duration_min']}min em {nova_sessao['subject']} ({nova_sessao['certame_id']})"
-                    ok_gh, res_gh = commit_file_to_github(
-                        repo=gh_cfg_save["repo"],
-                        file_path="data/sessions.json",
-                        data_obj=st.session_state.sessions,
-                        commit_message=commit_txt,
-                        branch=gh_cfg_save["branch"],
-                        token=gh_cfg_save["token"]
-                    )
-                    msg_gh = f" | ☁️ GitHub: {res_gh}" if ok_gh else f" | ⚠️ GitHub: {res_gh}"
+                complemento = st.text_input(
+                    "Subtópico / Complemento (opcional):",
+                    key=f"reg_top_comp_{certame_escolhido_id}_{bloco_selecionado}_{disciplina_selecionada}",
+                    placeholder="Ex: Teoria, resumo, flashcards..."
+                )
+                if complemento.strip():
+                    topico_final = f"{topico_escolhido} — {complemento.strip()}"
                 else:
-                    msg_gh = " | ℹ️ Nuvem: sem token para auto-commit (salvo localmente)"
-                    
-                st.success(f"✅ Sessão registrada para **{opcoes_certames_form[certame_escolhido_id]}** ({duracao} min em {disciplina_selecionada})!{msg_cofre}{msg_gh}")
-                st.rerun()
+                    topico_final = topico_escolhido
+    else:
+        topico_final = st.text_input(
+            "Tópico Específico:", 
+            placeholder="Ex: 'Modelo OSI x TCP/IP' ou 'LC 840 - Regime Disciplinar'",
+            key=f"reg_top_manual_{certame_escolhido_id}_{bloco_selecionado}_{disciplina_selecionada}"
+        )
+        if not topico_final.strip():
+            topico_final = disciplina_selecionada
+    
+    c_q1, c_q2, c_q3 = st.columns(3)
+    with c_q1:
+        tempo_sugerido = minutos_cronometro if minutos_cronometro > 0 else 60
+        duracao = st.number_input(
+            "Duração em Minutos:", 
+            min_value=1, 
+            max_value=600, 
+            value=int(tempo_sugerido), 
+            step=5,
+            key="reg_duracao"
+        )
+    with c_q2:
+        q_total = st.number_input("Questões Feitas:", min_value=0, max_value=300, value=0, step=1, key="reg_q_total")
+    with c_q3:
+        q_corretas = st.number_input("Questões Acertadas:", min_value=0, max_value=300, value=0, step=1, key="reg_q_corretas")
+        
+    notas = st.text_area(
+        "Anotações, Pontos Fortes, Pegadinhas de Banca:", 
+        placeholder="Registre observações importantes para o seu Second Brain...",
+        key="reg_notas"
+    )
+    sync_cofre = st.checkbox(
+        "Sincronizar com o Cofre Obsidian (se disponível localmente)", 
+        value=True, 
+        key="reg_sync_cofre"
+    )
+    
+    st.write("")
+    submitted = st.button("💾 Salvar Sessão", use_container_width=True, type="primary")
+    
+    if submitted:
+        if q_total > 0 and q_corretas > q_total:
+            st.error("O número de acertos não pode ser maior que o total de questões!")
+        else:
+            acc = round((q_corretas / q_total * 100), 1) if q_total > 0 else 0.0
+            nova_sessao = {
+                "id": datetime.now().strftime("%Y%m%d%H%M%S"),
+                "certame_id": certame_escolhido_id,
+                "certame_name": opcoes_certames_form[certame_escolhido_id],
+                "date": str(data_sessao),
+                "block": bloco_selecionado,
+                "subject": disciplina_selecionada,
+                "topic": topico_final,
+                "duration_min": int(duracao),
+                "questions_total": int(q_total),
+                "questions_correct": int(q_corretas),
+                "accuracy_pct": acc,
+                "notes": notas
+            }
+            
+            st.session_state.sessions.append(nova_sessao)
+            save_sessions(st.session_state.sessions)
+            
+            if minutos_cronometro > 0:
+                st.session_state.timer_running = False
+                st.session_state.elapsed_seconds = 0
+                st.session_state.timer_start = None
+                
+            # 1. Sincronização Local com o Obsidian (se cofre acessível)
+            msg_cofre = ""
+            if sync_cofre and cofre_conectado:
+                ok_c, res_c = sync_session_to_obsidian_idempotent(nova_sessao, cofre_path)
+                msg_cofre = f" | 🧠 Obsidian: {res_c}" if ok_c else f" | ⚠️ Obsidian: {res_c}"
+            
+            # 2. Sincronização em Nuvem via GitHub API
+            msg_gh = ""
+            gh_cfg_save = get_github_config()
+            if gh_cfg_save["token"]:
+                commit_txt = f"feat(estudo): {nova_sessao['duration_min']}min em {nova_sessao['subject']} ({nova_sessao['certame_id']})"
+                ok_gh, res_gh = commit_file_to_github(
+                    repo=gh_cfg_save["repo"],
+                    file_path="data/sessions.json",
+                    data_obj=st.session_state.sessions,
+                    commit_message=commit_txt,
+                    branch=gh_cfg_save["branch"],
+                    token=gh_cfg_save["token"]
+                )
+                msg_gh = f" | ☁️ GitHub: {res_gh}" if ok_gh else f" | ⚠️ GitHub: {res_gh}"
+            else:
+                msg_gh = " | ℹ️ Nuvem: sem token para auto-commit (salvo localmente)"
+                
+            st.success(f"✅ Sessão registrada para **{opcoes_certames_form[certame_escolhido_id]}** ({duracao} min em {disciplina_selecionada})!{msg_cofre}{msg_gh}")
+            st.rerun()
 
 # ------------------------------------------
 # TAB 3: HISTÓRICO & GESTÃO
@@ -824,9 +896,15 @@ with tab_certames:
             st.markdown(f"- **Banca:** {c.get('banca', '-')}")
             st.markdown(f"- **Data da Prova:** {c.get('exam_date', 'Não definida')}")
             st.markdown(f"- **Metas:** {c.get('daily_target_hours', 2.0)}h/dia | {c.get('weekly_target_hours', 10.0)}h/semana")
-            st.markdown("**Disciplinas Cadastradas:**")
+            st.markdown("**Conteúdo Programático & Disciplinas:**")
             for blk, mats in c.get("subjects", {}).items():
-                st.markdown(f"  * **{blk}:** {', '.join(mats)}")
+                if isinstance(mats, dict):
+                    st.markdown(f"  * **{blk}:** ({len(mats)} disciplinas)")
+                    for m_name, t_list in mats.items():
+                        n_top = len(t_list) if isinstance(t_list, list) else 0
+                        st.markdown(f"    - **{m_name}** ({n_top} tópicos catalogados)")
+                elif isinstance(mats, list):
+                    st.markdown(f"  * **{blk}:** {', '.join(mats)}")
                 
     st.divider()
     st.subheader("➕ Adicionar Novo Concurso / Certame")
@@ -868,7 +946,7 @@ with tab_certames:
                     "weekly_target_hours": 10.0,
                     "status": novo_status,
                     "subjects": {
-                        "Conhecimentos": lista_mats
+                        "Conhecimentos": {m: [f"1. Estudo geral de {m}"] for m in lista_mats}
                     }
                 }
                 st.session_state.certames.append(novo_certame_dict)

@@ -10,31 +10,231 @@
     "weekly_target_hours": 10.0,
     "status": "Foco Total 🔥",
     "subjects": {
-      "Conhecimentos Específicos (Peso 2)": [
-        "Redes de Computadores",
-        "Sistemas Operacionais e Serviços",
-        "Hardware e Infraestrutura",
-        "Armazenamento e Backup",
-        "Virtualização e Nuvem",
-        "Segurança da Informação",
-        "Monitoramento e Continuidade",
-        "Bancos de Dados em Infra",
-        "Gestão e Governança de TI",
-        "Fiscalização de Contratos de TIC"
-      ],
-      "Conhecimentos Básicos (Peso 1)": [
-        "Regime Jurídico dos Servidores (LC 840/2011)",
-        "LODF e LC nº 828/2010",
-        "Língua Portuguesa",
-        "Lei Maria da Penha (Lei 11.340/2006)",
-        "Conhecimentos do DF e Mulheres",
-        "Noções de Informática",
-        "Noções de Primeiros Socorros"
-      ],
-      "Discursivas": [
-        "Questão Discursiva Técnica TI (10 pts)",
-        "Dissertação Geral (20 pts)"
-      ]
+      "Conhecimentos Específicos (Peso 2)": {
+        "Redes de Computadores": [
+          "1. Fundamentos de redes de computadores. Modelos OSI e TCP/IP",
+          "2. Redes LAN, WAN e WLAN. Topologias e meios de transmissão",
+          "3. Ethernet e padrões IEEE 802",
+          "4. Protocolos TCP, UDP, IP, ICMP e ARP.5 Endereçamento IPv4 e IPv6, sub-redes, CIDR e NAT",
+          "6. Serviços e protocolos de rede: DNS, DHCP, NTP,HTTP/HTTPS, SSH e SNMP",
+          "7. VLAN, trunking e Spanning Tree",
+          "8. Roteamento estático e dinâmico",
+          "9. Redes privadasvirtuais (VPN)",
+          "10. Equipamentos de rede: switches, roteadores, pontos de acesso e balanceadores de carga",
+          "11. Redes sem fio: conceitos, padrões, configuração e segurança",
+          "12. Redundância, alta disponibilidade, qualidade deserviço (QoS) e diagnóstico de redes"
+        ],
+        "Sistemas Operacionais e Serviços": [
+          "1. Sistemas operacionais Linux, Unix e Windows Server",
+          "2. Instalação,configuração, atualização, administração e manutenção de servidores",
+          "3. Sistemas de arquivos, usuários, grupos,permissões, processos e serviços",
+          "4. Gerenciamento de processador, memória, armazenamento e dispositivos",
+          "5. Serviços de diretório, autenticação e controle de acesso",
+          "6. Administração remota",
+          "7. Logs, auditoria,monitoramento, diagnóstico e análise de desempenho",
+          "8. Automação de tarefas administrativas e linguagens descript: Shell Script, PowerShell e noções de Python",
+          "9. Servidores web, servidores de aplicações e proxies reversos:conceitos, instalação, configuração, segurança e monitoramento",
+          "10. Serviços de diretório e autenticação",
+          "11. Serviços de nomes, endereçamento e sincronização de tempo",
+          "12. Compartilhamento de arquivos e recursos derede",
+          "13. Balanceamento de carga e publicação de serviços"
+        ],
+        "Hardware e Infraestrutura": [
+          "1. Arquitetura de computadores e servidores: processadores, memória, barramentos, interfaces e dispositivos de entrada e saída",
+          "2. Arquiteturas e componentes de servidores corporativos",
+          "3. Redundância de fontes, interfaces, armazenamento e demais componentes",
+          "4. Conceitos de data center:disponibilidade, climatização, alimentação elétrica, cabeamento estruturado e infraestrutura física"
+        ],
+        "Armazenamento e Backup": [
+          "1. Tecnologias de armazenamento DAS, NAS e SAN",
+          "2. RAID",
+          "3. Fibre Channel e iSCSI",
+          "4. Armazenamento em blocos, arquivos e objetos",
+          "5. Provisionamento, replicação, snapshots e monitoramento de armazenamento",
+          "6. Conceitos, políticas, tipos e estratégias de backup",
+          "7. Backup completo, incremental e diferencial.8 Retenção, restauração e testes de recuperação",
+          "9. Recuperação de desastres, RPO e RTO"
+        ],
+        "Virtualização e Nuvem": [
+          "1. Virtualização de servidores: conceitos, hipervisores, máquinas virtuais e gerenciamento de recursos",
+          "2. Redes e armazenamento em ambientes virtualizados",
+          "3. Consolidação, migração, alta disponibilidade e recuperação de máquinas virtuais",
+          "4. Contêineres: conceitos, imagens, registros, volumes e redes",
+          "5. Docker: conceitos e componentes fundamentais",
+          "6. Kubernetes: conceitos, arquitetura e componentes fundamentais",
+          "7. Conceitos e características da computação em nuvem",
+          "8. Modelos de serviço IaaS, PaaS e SaaS",
+          "9. Modelos deimplantação: nuvens pública, privada e híbrida",
+          "10. Infraestrutura computacional, redes, armazenamento esegurança em nuvem",
+          "11. Escalabilidade, elasticidade, disponibilidade e tolerância a falhas",
+          "12. Infraestrutura híbridae integração entre ambientes locais e em nuvem"
+        ],
+        "Segurança da Informação": [
+          "1. Fundamentos de segurança da informação: confidencialidade, integridade,disponibilidade, autenticidade, ameaças, vulnerabilidades, riscos e controles",
+          "2. Segurança física e lógica",
+          "3. Autenticação, autorização, gestão de identidades e controle de acesso",
+          "4. Criptografia, certificados digitais einfraestrutura de chaves públicas (PKI)",
+          "5. Segurança de redes: firewalls, IDS/IPS, VPN, segmentação e proteção deserviços",
+          "6. Segurança de servidores e sistemas operacionais: hardening, atualização, correção e gestão devulnerabilidades",
+          "7. Proteção contra códigos maliciosos",
+          "8. Gestão de logs, eventos e incidentes de segurança",
+          "9. Segurança em ambientes virtualizados, contêineres e nuvem",
+          "10. Normas ABNT NBR ISO/IEC da família 27000aplicáveis à segurança da informação, controles e gestão de riscos"
+        ],
+        "Monitoramento e Continuidade": [
+          "1. Monitoramento de redes, servidores, sistemas operacionais, serviços edispositivos",
+          "2. Disponibilidade, capacidade e desempenho",
+          "3. Métricas, logs, eventos e alertas",
+          "4. SNMP e Syslog",
+          "5. Diagnóstico e análise de falhas",
+          "6. Automação de tarefas de infraestrutura",
+          "7. Gerenciamento de configuração econceitos de infraestrutura como código (IaC)",
+          "8. Conceitos de alta disponibilidade, redundância e tolerância afalhas",
+          "9. Clusters, balanceamento de carga e failover",
+          "10. Replicação de dados e serviços",
+          "11. Planejamento decapacidade e disponibilidade",
+          "12. Continuidade de serviços e recuperação de desastres",
+          "13. RPO e RTO"
+        ],
+        "Bancos de Dados em Infra": [
+          "1. Arquitetura e conceitos de sistemas gerenciadores de bancos de dados (SGBDs)",
+          "2. Instalação e conectividade de bancos de dados em ambientes de infraestrutura",
+          "3. Disponibilidade, segurança, backup e recuperação de bancos de dados"
+        ],
+        "Gestão e Governança de TI": [
+          "1. Planejamento e gestão estratégicos de TI",
+          "1.1. PlanoEstratégico de Tecnologia da Informação (PETI), Plano Diretor de Tecnologia da Informação (PDTI) e indicadores dedesempenho de TI",
+          "2. Gerenciamento de projetos",
+          "2.1. PMBOK 7ª edição: princípios, domínios de desempenho econceitos fundamentais",
+          "3. Gerenciamento de serviços de TI",
+          "3.1. ITIL 4: conceitos, princípios orientadores e sistemade valor de serviço",
+          "3.2. Gerenciamento de incidentes",
+          "3.3. Gerenciamento de problemas",
+          "3.4. Gerenciamento demudanças",
+          "3.5. Gerenciamento de configuração",
+          "3.6. Gerenciamento de disponibilidade",
+          "3.7. Gerenciamento decapacidade e desempenho",
+          "3.8. Gerenciamento de continuidade de serviços de TI",
+          "4. Governança de TI",
+          "4.1. COBIT2019: conceitos, princípios, componentes, objetivos de governança e de gestão",
+          "5. Segurança da informação eproteção de dados",
+          "5.1. Confidencialidade, integridade, disponibilidade, autenticidade e rastreabilidade",
+          "5.2. Gestãode acessos e privilégios",
+          "5.3. Gestão de riscos e continuidade de negócios",
+          "6. Lei Federal nº 12.527/2011 (Lei deAcesso à Informação)",
+          "7. Lei Distrital nº 4.990/2012 (Lei de Acesso à Informação no Distrito Federal)",
+          "8. Lei Federalnº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais – LGPD)",
+          "8.1. Princípios e fundamentos",
+          "8.2. Tratamentode dados pessoais",
+          "8.3. Direitos dos titulares",
+          "8.4. Segurança e boas práticas",
+          "8.5. Incidentes de segurança envolvendodados pessoais"
+        ],
+        "Fiscalização de Contratos de TIC": [
+          "1. Planejamento, gestão e fiscalização de contratações de soluções de tecnologia da informação e comunicação",
+          "1.1. Planejamento da contratação",
+          "1.2. Seleção do fornecedor.1.3 Gestão e fiscalização contratual",
+          "1.4. Gerenciamento de riscos",
+          "1.5. Acordos de níveis de serviço e indicadores dedesempenho",
+          "2. Legislação aplicável à contratação de bens e serviços de tecnologia da informação e comunicaçãoe suas alterações",
+          "2.1. Lei Federal nº 14.133/2021 (Lei de Licitações e Contratos Administrativos)",
+          "2.2. InstruçãoNormativa SGD/ME nº 94/2022",
+          "2.3. Instrução Normativa SEGES/ME nº 65/2021"
+        ]
+      },
+      "Conhecimentos Básicos (Peso 1)": {
+        "Língua Portuguesa": [
+          "1. Compreensão e interpretação de textos de gêneros variados",
+          "2. Reconhecimento de tipos e gêneros textuais",
+          "3. Domínio da ortografia oficial",
+          "4. Domínio dos mecanismos de coesão textual",
+          "4.1. Emprego deelementos de referenciação, substituição e repetição, de conectores e de outros elementos de sequenciaçãotextual",
+          "4.2. Emprego de tempos e modos verbais",
+          "5. Domínio da estrutura morfossintática do período",
+          "5.1. Empregodas classes de palavras",
+          "5.2. Relações de coordenação entre orações e entre termos da oração",
+          "5.3. Relações desubordinação entre orações e entre termos da oração",
+          "5.4. Emprego dos sinais de pontuação",
+          "5.5. Concordânciaverbal e nominal",
+          "5.6. Regência verbal e nominal",
+          "5.7. Emprego do sinal indicativo de crase",
+          "5.8. Colocação dospronomes átonos",
+          "6. Reescrita de frases e parágrafos do texto",
+          "6.1. Significação das palavras",
+          "6.2. Substituição depalavras ou de trechos de texto",
+          "6.3. Reorganização da estrutura de orações e de períodos do texto",
+          "6.4. Reescritade textos de diferentes gêneros e níveis de formalidade"
+        ],
+        "Lei Orgânica do Distrito Federal e Lei Complementar Distrital nº 828/2010": [
+          "1. Lei Orgânica do Distrito Federal",
+          "1.1. Organização do Distrito Federal (LODF)",
+          "1.2. Organização dos poderes",
+          "1.3. Administração pública",
+          "1.4. Das funções essenciais à justiça: arts",
+          "114. a 116 da LODF (Da Defensoria Pública)",
+          "2. Lei Complementar Distrital nº 828/2010 e suas alterações",
+          "2.1. Princípios institucionais e funções da Defensoria Pública do Distrito Federal",
+          "2.2. Estrutura orgânica",
+          "2.3. Assistência jurídica integral e gratuita: destinatários, direitos dos assistidos e hipóteses de atuação"
+        ],
+        "Regime Jurídico dos Servidores Públicos do Distrito Federal": [
+          "1. Lei Complementar nº 840/2011 (Regime Jurídicodos Servidores Públicos Civis do Distrito Federal, das Autarquias e das Fundações Públicas Distritais)",
+          "1.1. Carreiras,regime e jornada de trabalho",
+          "1.2. Direitos",
+          "1.3. Deveres",
+          "1.4. Regime disciplinar"
+        ],
+        "Conhecimentos Acerca do Distrito Federal e da Política para Mulheres": [
+          "1. Domínio de tópicos atuais e relevantes acerca da realidade étnica, social, histórica, geográfica, cultural, política e econômica do Distrito Federal e da Região Integrada de Desenvolvimento do Distrito Federal e Entorno (RIDE) (Lei Complementar Federal nº 94/1998 e Decreto Federal nº 7.469/2011)",
+          "2. Plano Distrital de Política para Mulheres",
+          "3. Lei Distrital nº 7.462/2024: políticasde proteção à mulher e de igualdade de gênero no âmbito da administração pública direta, autárquica e fundacionaldo Distrito Federal"
+        ],
+        "Lei Maria da Penha": [
+          "1. Lei Federal nº 11.340/2006 – Lei Maria da Penha",
+          "1.1. Disposições preliminares; conceito e formas de violência doméstica e familiar contra a mulher",
+          "1.2. Assistência à mulher em situação de violênciadoméstica e familiar",
+          "1.3. Atendimento pela autoridade policial",
+          "1.4. Medidas protetivas de urgência",
+          "1.5. Atuação doMinistério Público e da Defensoria Pública; assistência judiciária",
+          "1.6. Equipe de atendimento multidisciplinar",
+          "1.7. Disposições finais"
+        ],
+        "Noções de Informática": [
+          "1. Sistemas operacionais e ambiente de trabalho",
+          "2. Edição de textos, planilhas eapresentações",
+          "3. Navegadores e correio eletrônico",
+          "4. Organização e gerenciamento de arquivos",
+          "5. Noções desegurança da informação: cópias de segurança, códigos maliciosos e phishing",
+          "6. Noções de processo administrativoeletrônico e de assinatura eletrônica",
+          "7. Noções básicas da Lei Federal nº 13.709/2018"
+        ],
+        "Noções de Primeiros Socorros": [
+          "1. Princípios básicos e procedimentos iniciais em situações de emergência",
+          "2. Avaliação e segurança da vítima",
+          "3. Suporte básico de vida",
+          "4. Atendimento em casos de desmaios, engasgos,hemorragias, ferimentos, queimaduras, fraturas, convulsões, intoxicações e acidentes",
+          "5. Acionamento dos serviçosde emergência"
+        ]
+      },
+      "Discursivas": {
+        "Questão Discursiva Técnica TI (10 pts)": [
+          "Redes de Computadores e Protocolos (OSI/TCP-IP/Roteamento)",
+          "Sistemas Operacionais, Servidores e Hardening",
+          "Segurança da Informação e Defesa Cibernética",
+          "Virtualização, Contêineres (Docker) e Kubernetes",
+          "Continuidade de Serviços, Alta Disponibilidade e RTO/RPO",
+          "Governança (ITIL 4 / COBIT 2019 / PMBOK 7)",
+          "Contratações e Fiscalização de TIC (IN SGD 94/2022 / Lei 14.133)"
+        ],
+        "Dissertação Geral (20 pts)": [
+          "Acesso à Justiça e o Papel Constitucional da Defensoria Pública",
+          "Direitos Humanos e Proteção de Grupos Vulneráveis",
+          "Políticas de Proteção à Mulher e Igualdade de Gênero (Lei 7.462/2024)",
+          "Combate à Violência Doméstica e Familiar (Lei Maria da Penha)",
+          "Transparência Pública e Acesso à Informação (LAI)",
+          "Proteção de Dados Pessoais no Setor Público (LGPD)"
+        ]
+      }
     }
   },
   {
@@ -48,26 +248,83 @@
     "weekly_target_hours": 10.0,
     "status": "Planejado ⏳",
     "subjects": {
-      "Conhecimentos Específicos TI": [
-        "Engenharia de Software e Agilidade",
-        "Banco de Dados e Big Data",
-        "Segurança da Informação e Cibersegurança",
-        "Governança e Gestão de TI (COBIT/ITIL)",
-        "Ciência de Dados e Inteligência Artificial",
-        "Infraestrutura, Redes e Nuvem"
-      ],
-      "Conhecimentos Básicos e Gerais": [
-        "Língua Portuguesa e Redação Oficial",
-        "Língua Inglesa",
-        "Direito Constitucional",
-        "Direito Administrativo",
-        "Administração Pública e Políticas Públicas",
-        "Auditoria Governamental e Controle Interno"
-      ],
-      "Discursivas": [
-        "Estudo de Caso / Discursiva Técnica TI",
-        "Dissertação de Controle Público"
-      ]
+      "Conhecimentos Específicos TI": {
+        "Engenharia de Software e Agilidade": [
+          "Ciclo de vida de software e métodos ágeis (Scrum, Kanban, XP)",
+          "Engenharia de requisitos e modelagem de software (UML)",
+          "Padrões de projeto (GoF) e arquitetura de software (Microsserviços, API REST)",
+          "Qualidade de software e testes (TDD, BDD, testes unitários e integrados)",
+          "DevOps, CI/CD e integração contínua"
+        ],
+        "Banco de Dados e Big Data": [
+          "Modelagem conceitual, lógica e física de dados (ER e Relacional)",
+          "SQL (DML, DDL, DCL) e otimização de consultas (tuning)",
+          "Data Warehouse, modelagem dimensional e ETL/ELT",
+          "Bancos de dados NoSQL e ecossistema Big Data (Hadoop, Spark)"
+        ],
+        "Segurança da Informação e Cibersegurança": [
+          "Princípios de segurança (CIDAA) e gestão de riscos (ISO 27005)",
+          "Normas ISO/IEC 27001 e 27002",
+          "Criptografia simétrica, assimétrica e funções hash",
+          "Gestão de vulnerabilidades, SIEM e resposta a incidentes",
+          "Segurança em nuvem e conformidade com LGPD"
+        ],
+        "Governança e Gestão de TI (COBIT/ITIL)": [
+          "COBIT 2019: princípios, componentes e objetivos de governança/gestão",
+          "ITIL 4: conceitos, princípios orientadores e Sistema de Valor de Serviço (SVS)",
+          "Gerenciamento de projetos: PMBOK 7ª edição",
+          "Planejamento estratégico de TIC (PDTI / PETI)"
+        ],
+        "Ciência de Dados e Inteligência Artificial": [
+          "Fundamentos de Ciência de Dados e processo CRISP-DM",
+          "Aprendizado de Máquina (Classificação, Regressão, Agrupamento)",
+          "Processamento de Linguagem Natural (NLP) e LLMs",
+          "Ética e governança em Inteligência Artificial"
+        ],
+        "Infraestrutura, Redes e Nuvem": [
+          "Arquitetura TCP/IP e protocolos de rede",
+          "Computação em nuvem (IaaS, PaaS, SaaS e nuvem híbrida)",
+          "Contêineres (Docker) e orquestração (Kubernetes)"
+        ]
+      },
+      "Conhecimentos Básicos e Gerais": {
+        "Língua Portuguesa e Redação Oficial": [
+          "Compreensão e interpretação de textos",
+          "Morfossintaxe, concordância, regência e crase",
+          "Manual de Redação da Presidência da República"
+        ],
+        "Língua Inglesa": [
+          "Compreensão de textos técnicos em língua inglesa"
+        ],
+        "Direito Constitucional": [
+          "Direitos e garantias fundamentais (Art. 5º)",
+          "Organização dos Poderes e da Administração Pública",
+          "Funções essenciais à Justiça e órgãos de controle"
+        ],
+        "Direito Administrativo": [
+          "Princípios da Administração Pública (LIMPE)",
+          "Atos administrativos e poderes da Administração",
+          "Licitações e Contratos (Lei 14.133/2021)",
+          "Improbidade Administrativa (Lei 8.429/1992 e alterações)"
+        ],
+        "Auditoria Governamental e Controle Interno": [
+          "Normas internacionais de auditoria e controle interno (COSO I e II)",
+          "Tipos de auditoria governamental (conformidade, operacional)",
+          "Procedimentos, evidências e papéis de trabalho",
+          "Fiscalização e julgamento de contas públicas"
+        ]
+      },
+      "Discursivas": {
+        "Estudo de Caso / Discursiva Técnica TI": [
+          "Planejamento e Fiscalização de Contratações de TI",
+          "Auditoria de Sistemas e Segurança da Informação",
+          "Governança de Dados e Arquitetura de TI em Órgãos Públicos"
+        ],
+        "Dissertação de Controle Público": [
+          "Transparência, Combate à Corrupção e Controle Social",
+          "Integridade Pública e Governança Governamental"
+        ]
+      }
     }
   },
   {
@@ -81,18 +338,49 @@
     "weekly_target_hours": 10.0,
     "status": "Stand-by ⏳",
     "subjects": {
-      "Específicos": [
-        "Desenvolvimento e Arquitetura de Software",
-        "Bancos de Dados Relacionais e NoSQL",
-        "DevOps, CI/CD e Contêineres",
-        "Segurança da Informação",
-        "Governança de TI"
-      ],
-      "Básicos": [
-        "Língua Portuguesa (FGV)",
-        "Raciocínio Lógico-Matemático",
-        "Legislação e Ética Pública"
-      ]
+      "Específicos": {
+        "Desenvolvimento e Arquitetura de Software": [
+          "Linguagens Java, Python e JavaScript",
+          "Arquitetura de microsserviços e APIs RESTful",
+          "Padrões de projeto e clean code"
+        ],
+        "Bancos de Dados Relacionais e NoSQL": [
+          "PostgreSQL, Oracle e modelagem relacional",
+          "Bancos NoSQL (MongoDB, Redis)",
+          "Otimização e tuning de consultas SQL"
+        ],
+        "DevOps, CI/CD e Contêineres": [
+          "Docker e criação de imagens",
+          "Kubernetes e orquestração de pods",
+          "Pipelines CI/CD (GitLab CI, GitHub Actions, Jenkins)"
+        ],
+        "Segurança da Informação": [
+          "Criptografia e autenticação OAuth2 / JWT",
+          "OWASP Top 10 e desenvolvimento seguro",
+          "Gestão de acessos e conformidade LGPD"
+        ],
+        "Governança de TI": [
+          "ITIL 4 e COBIT 2019",
+          "Gerenciamento de serviços e incidentes"
+        ]
+      },
+      "Básicos": {
+        "Língua Portuguesa (FGV)": [
+          "Interpretação e inferência textual estilo FGV",
+          "Semântica, coesão, paralelismo e reescrita",
+          "Sintaxe de regência, concordância e pontuação"
+        ],
+        "Raciocínio Lógico-Matemático": [
+          "Lógica proposicional e tabela verdade",
+          "Equivalências, negações e diagramas lógicos",
+          "Probabilidade e análise combinatória"
+        ],
+        "Legislação e Ética Pública": [
+          "Código de Ética do Servidor Público",
+          "Lei de Acesso à Informação (Lei 12.527/2011)",
+          "Lei Geral de Proteção de Dados (Lei 13.709/2018)"
+        ]
+      }
     }
   },
   {
@@ -106,21 +394,64 @@
     "weekly_target_hours": 10.0,
     "status": "Permanente 🌐",
     "subjects": {
-      "Tecnologia da Informação": [
-        "Redes de Computadores",
-        "Sistemas Operacionais (Linux/Windows)",
-        "Bancos de Dados e SQL",
-        "Engenharia de Software",
-        "Segurança da Informação",
-        "Governança de TI",
-        "Cloud Computing & DevOps"
-      ],
-      "Disciplinas Gerais": [
-        "Língua Portuguesa",
-        "Raciocínio Lógico-Matemático",
-        "Direito Constitucional",
-        "Direito Administrativo"
-      ]
+      "Tecnologia da Informação": {
+        "Redes de Computadores": [
+          "Modelo OSI e pilha TCP/IP",
+          "Endereçamento IPv4, IPv6 e Sub-redes",
+          "Protocolos de aplicação (DNS, HTTP, DHCP, SSH)"
+        ],
+        "Sistemas Operacionais (Linux/Windows)": [
+          "Comandos e administração Linux",
+          "Shell Script e PowerShell",
+          "Gerenciamento de processos, memória e arquivos"
+        ],
+        "Bancos de Dados e SQL": [
+          "Modelagem relacional e normalização (1FN, 2FN, 3FN)",
+          "Consultas SQL (JOINs, subconsultas, agregações)",
+          "Transações ACID e isolamento"
+        ],
+        "Engenharia de Software": [
+          "Scrum e metodologias ágeis",
+          "Padrões de projeto GoF",
+          "Testes de software unitários e de integração"
+        ],
+        "Segurança da Informação": [
+          "Criptografia simétrica, assimétrica e hash",
+          "Família ISO/IEC 27000",
+          "Ataques comuns e mecanismos de defesa"
+        ],
+        "Governança de TI": [
+          "COBIT 2019 e ITIL 4",
+          "PMBOK 7ª edição"
+        ],
+        "Cloud Computing & DevOps": [
+          "Modelos de serviço (IaaS, PaaS, SaaS)",
+          "Docker e contêineres",
+          "Kubernetes e orquestração"
+        ]
+      },
+      "Disciplinas Gerais": {
+        "Língua Portuguesa": [
+          "Interpretação e compreensão de texto",
+          "Pontuação e crase",
+          "Concordância e regência nominal/verbal"
+        ],
+        "Raciocínio Lógico-Matemático": [
+          "Lógica proposicional e conectivos",
+          "Equivalências e negações",
+          "Análise combinatória e probabilidade"
+        ],
+        "Direito Constitucional": [
+          "Artigo 5º da CF/88 (Direitos fundamentais)",
+          "Administração Pública (Art. 37)",
+          "Organização dos Poderes"
+        ],
+        "Direito Administrativo": [
+          "Princípios e poderes da Administração",
+          "Atos administrativos",
+          "Lei de Licitações (Lei 14.133/2021)"
+        ]
+      }
     }
   }
 ]
