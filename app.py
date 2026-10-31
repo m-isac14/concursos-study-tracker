@@ -64,6 +64,17 @@ st.markdown("""
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 SESSIONS_FILE = os.path.join(DATA_DIR, "sessions.json")
 CERTAMES_FILE = os.path.join(DATA_DIR, "certames.json")
+STUDY_TYPES_FILE = os.path.join(DATA_DIR, "study_types.json")
+
+DEFAULT_STUDY_TYPES = [
+    "📹 Vídeoaula",
+    "🎯 Questões / Simulado",
+    "📖 PDF / Apostila",
+    "⚖️ Lei Seca / Legislação",
+    "✍️ Prática de Discursiva",
+    "🧠 Revisão / Flashcards",
+    "📝 Resumo / Mapa Mental"
+]
 
 COFRE_DIR_DEFAULT = r"G:\Meu Drive\cofre\06-Concursos-e-Estudos\registros-de-estudo"
 COFRE_MATRIZ_DEFAULT = r"G:\Meu Drive\cofre\06-Concursos-e-Estudos\matriz-de-desempenho-e-materias.md"
@@ -334,6 +345,24 @@ def save_sessions(sessions):
     with open(SESSIONS_FILE, "w", encoding="utf-8") as f:
         json.dump(sessions, f, ensure_ascii=False, indent=2)
 
+def load_study_types():
+    ensure_data_dir()
+    if os.path.exists(STUDY_TYPES_FILE):
+        try:
+            with open(STUDY_TYPES_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, list) and len(data) > 0:
+                    return data
+        except Exception:
+            pass
+    save_study_types(DEFAULT_STUDY_TYPES)
+    return list(DEFAULT_STUDY_TYPES)
+
+def save_study_types(types_list):
+    ensure_data_dir()
+    with open(STUDY_TYPES_FILE, "w", encoding="utf-8") as f:
+        json.dump(types_list, f, ensure_ascii=False, indent=2)
+
 def pull_from_github_and_merge():
     """Puxa a base de sessões do GitHub e mescla com as sessões locais."""
     gh_cfg = get_github_config()
@@ -377,6 +406,8 @@ if "certames" not in st.session_state:
     st.session_state.certames = load_certames()
 if "sessions" not in st.session_state:
     st.session_state.sessions = load_sessions()
+if "study_types" not in st.session_state:
+    st.session_state.study_types = load_study_types()
 
 # Auto-pull na inicialização se ainda não foi feito e se houver token
 if "initial_gh_pull_done" not in st.session_state:
@@ -525,6 +556,9 @@ if not df_all.empty:
     if "certame_id" not in df_all.columns:
         df_all["certame_id"] = "DPDF"
         df_all["certame_name"] = "DPDF 2026/2027"
+    if "study_type" not in df_all.columns:
+        df_all["study_type"] = "Geral"
+    df_all["study_type"] = df_all["study_type"].fillna("Geral")
 
 # Filtra conforme a visão selecionada
 if filtro_certame_id is not None and not df_all.empty:
@@ -780,6 +814,37 @@ with tab_dash:
             fig_consist.update_layout(margin=dict(t=10, b=10, l=10, r=10), coloraxis_showscale=False)
             st.plotly_chart(fig_consist, use_container_width=True)
 
+        if not df.empty and "study_type" in df.columns:
+            st.divider()
+            col_t_dash1, col_t_dash2 = st.columns(2)
+            with col_t_dash1:
+                st.subheader("🏷️ Horas por Tipo de Estudo")
+                tipo_horas = df.groupby("study_type")["hours"].sum().reset_index()
+                fig_tipo = px.pie(
+                    tipo_horas,
+                    values="hours",
+                    names="study_type",
+                    hole=0.45,
+                    color="study_type",
+                    color_discrete_sequence=px.colors.qualitative.Pastel
+                )
+                fig_tipo.update_traces(textinfo="percent+label")
+                fig_tipo.update_layout(margin=dict(t=10, b=10, l=10, r=10), showlegend=False)
+                st.plotly_chart(fig_tipo, use_container_width=True)
+            with col_t_dash2:
+                st.subheader("📊 Distribuição por Modalidade")
+                fig_tipo_bar = px.bar(
+                    tipo_horas.sort_values(by="hours", ascending=True),
+                    x="hours",
+                    y="study_type",
+                    orientation="h",
+                    labels={"hours": "Horas Líquidas", "study_type": "Modalidade"},
+                    color="hours",
+                    color_continuous_scale="Purples"
+                )
+                fig_tipo_bar.update_layout(margin=dict(t=10, b=10, l=10, r=10), coloraxis_showscale=False)
+                st.plotly_chart(fig_tipo_bar, use_container_width=True)
+
 # ------------------------------------------
 # TAB: PLANO DE ESTUDOS & GRADE 70/30
 # ------------------------------------------
@@ -1001,6 +1066,45 @@ with tab_reg:
         if not topico_final.strip():
             topico_final = disciplina_selecionada
     
+    col_tipo, col_tipo_cfg = st.columns([1.5, 1.0])
+    with col_tipo:
+        tipo_estudo_selecionado = st.selectbox(
+            "Modalidade / Tipo de Estudo:",
+            options=st.session_state.study_types,
+            key=f"reg_tipo_estudo_{certame_escolhido_id}",
+            help="Selecione o formato de estudo realizado (Vídeoaula, Questões, PDF, Lei Seca, etc.)."
+        )
+    with col_tipo_cfg:
+        with st.expander("⚙️ Gerenciar Categorias (Adicionar / Remover)"):
+            st.caption("Adicione novas modalidades ou exclua as existentes sem tocar no código:")
+            c_add1, c_add2 = st.columns([2, 1])
+            with c_add1:
+                novo_tipo_input = st.text_input("Novo Tipo:", placeholder="Ex: Podcast / Áudio", key="input_add_tipo", label_visibility="collapsed")
+            with c_add2:
+                if st.button("➕ Adicionar", use_container_width=True, key="btn_add_tipo"):
+                    val = novo_tipo_input.strip()
+                    if val:
+                        if val not in st.session_state.study_types:
+                            st.session_state.study_types.append(val)
+                            save_study_types(st.session_state.study_types)
+                            st.success(f"'{val}' adicionado!")
+                            st.rerun()
+                        else:
+                            st.warning("Tipo já cadastrado.")
+            
+            c_del1, c_del2 = st.columns([2, 1])
+            with c_del1:
+                tipo_del_sel = st.selectbox("Excluir Tipo:", options=st.session_state.study_types, key="sel_del_tipo", label_visibility="collapsed")
+            with c_del2:
+                if st.button("🗑️ Excluir", use_container_width=True, key="btn_del_tipo"):
+                    if len(st.session_state.study_types) > 1:
+                        st.session_state.study_types.remove(tipo_del_sel)
+                        save_study_types(st.session_state.study_types)
+                        st.success(f"'{tipo_del_sel}' excluído!")
+                        st.rerun()
+                    else:
+                        st.error("Mantenha ao menos 1 modalidade.")
+    
     c_q1, c_q2, c_q3 = st.columns(3)
     with c_q1:
         tempo_sugerido = minutos_cronometro if minutos_cronometro > 0 else 60
@@ -1044,6 +1148,7 @@ with tab_reg:
                 "block": bloco_selecionado,
                 "subject": disciplina_selecionada,
                 "topic": topico_final,
+                "study_type": tipo_estudo_selecionado,
                 "duration_min": int(duracao),
                 "questions_total": int(q_total),
                 "questions_correct": int(q_corretas),
@@ -1094,13 +1199,16 @@ with tab_hist:
     if df_all.empty:
         st.info("Nenhuma sessão registrada até o momento.")
     else:
-        col_f1, col_f2, col_f3 = st.columns(3)
+        col_f1, col_f2, col_f3, col_f4 = st.columns(4)
         with col_f1:
             filtro_c_hist = st.multiselect("Filtrar por Certame:", options=sorted(df_all["certame_name"].unique()))
         with col_f2:
             filtro_mat = st.multiselect("Filtrar por Disciplina:", options=sorted(df_all["subject"].unique()))
         with col_f3:
             filtro_bloco = st.multiselect("Filtrar por Bloco:", options=sorted(df_all["block"].unique()))
+        with col_f4:
+            tipos_opcoes = sorted([t for t in df_all["study_type"].dropna().unique() if t])
+            filtro_tipo = st.multiselect("Filtrar por Tipo:", options=tipos_opcoes)
             
         df_view = df_all.copy()
         if filtro_c_hist:
@@ -1109,15 +1217,18 @@ with tab_hist:
             df_view = df_view[df_view["subject"].isin(filtro_mat)]
         if filtro_bloco:
             df_view = df_view[df_view["block"].isin(filtro_bloco)]
+        if filtro_tipo:
+            df_view = df_view[df_view["study_type"].isin(filtro_tipo)]
             
         st.dataframe(
-            df_view[["date", "certame_name", "block", "subject", "topic", "duration_min", "hours", "questions_total", "questions_correct", "accuracy_pct", "notes"]],
+            df_view[["date", "certame_name", "block", "subject", "topic", "study_type", "duration_min", "hours", "questions_total", "questions_correct", "accuracy_pct", "notes"]],
             column_config={
                 "date": st.column_config.DateColumn("Data"),
                 "certame_name": "Certame",
                 "block": "Bloco",
                 "subject": "Disciplina",
                 "topic": "Tópico",
+                "study_type": "Tipo de Estudo",
                 "duration_min": "Minutos",
                 "hours": st.column_config.NumberColumn("Horas", format="%.2f h"),
                 "questions_total": "Total Q.",
@@ -1239,6 +1350,46 @@ with tab_certames:
                 save_certames(st.session_state.certames)
                 st.success(f"✅ Certame **{novo_nome}** adicionado com sucesso!")
                 st.rerun()
+
+    st.divider()
+    st.subheader("🏷️ Gestão de Modalidades & Tipos de Estudo")
+    st.markdown("Gerencie as categorias de estudo (Vídeoaula, Questões, PDF, Lei Seca, etc.) para personalizar suas opções sem precisar alterar o código.")
+
+    st.write("**Modalidades Atualmente Cadastradas:**")
+    cols_chips = st.columns(min(len(st.session_state.study_types), 4))
+    for idx, st_name in enumerate(st.session_state.study_types):
+        c_chip = cols_chips[idx % len(cols_chips)]
+        c_chip.info(f"**{st_name}**")
+
+    st.write("")
+    c_mgt1, c_mgt2 = st.columns(2)
+    with c_mgt1:
+        st.markdown("##### ➕ Adicionar Nova Modalidade")
+        novo_tipo_tab4 = st.text_input("Nome da Modalidade (com emoji opcional):", placeholder="Ex: 🎧 Podcast / Áudio", key="tab4_novo_tipo")
+        if st.button("Salvar Nova Modalidade", use_container_width=True, key="tab4_btn_add"):
+            val_t4 = novo_tipo_tab4.strip()
+            if val_t4:
+                if val_t4 not in st.session_state.study_types:
+                    st.session_state.study_types.append(val_t4)
+                    save_study_types(st.session_state.study_types)
+                    st.success(f"Modalidade '{val_t4}' adicionada com sucesso!")
+                    st.rerun()
+                else:
+                    st.warning("Esta modalidade já está cadastrada.")
+            else:
+                st.error("Informe o nome da modalidade.")
+
+    with c_mgt2:
+        st.markdown("##### 🗑️ Excluir Modalidade Existente")
+        tipo_del_tab4 = st.selectbox("Selecione a modalidade a remover:", options=st.session_state.study_types, key="tab4_sel_del")
+        if st.button("Excluir Modalidade Selecionada", use_container_width=True, key="tab4_btn_del"):
+            if len(st.session_state.study_types) > 1:
+                st.session_state.study_types.remove(tipo_del_tab4)
+                save_study_types(st.session_state.study_types)
+                st.success(f"Modalidade '{tipo_del_tab4}' excluída com sucesso!")
+                st.rerun()
+            else:
+                st.error("O sistema deve manter pelo menos uma modalidade cadastrada.")
 
 # ------------------------------------------
 # TAB 5: INTEGRAÇÃO OBSIDIAN & DATAVIEW

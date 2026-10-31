@@ -139,6 +139,7 @@ def sync_session_to_obsidian_idempotent(session, cofre_dir):
 - **Certame:** {session.get('certame_name', session.get('certame_id', 'Geral'))}
 - **Bloco:** {session['block']}
 - **Tópico:** {session.get('topic', '-')}
+- **Tipo de Estudo:** {session.get('study_type', 'Geral')}
 - **Duração:** {session['duration_min']} minutos ({session['duration_min']/60:.2f}h)
 - **Questões:** {session.get('questions_correct', 0)} / {session.get('questions_total', 0)} acertos ({session.get('accuracy_pct', 0)}%)
 """
