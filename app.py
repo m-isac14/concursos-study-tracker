@@ -1088,22 +1088,44 @@ with tab_reg:
         help="Selecione o formato de estudo realizado (Vídeoaula, Questões, PDF, Lei Seca, etc.)."
     )
     
-    c_q1, c_q2, c_q3 = st.columns(3)
-    with c_q1:
-        tempo_sugerido = minutos_cronometro if minutos_cronometro > 0 else 60
-        duracao = st.number_input(
-            "Duração em Minutos:", 
-            min_value=1, 
-            max_value=600, 
-            value=int(tempo_sugerido), 
-            step=5,
-            key="reg_duracao"
+    # Duração (Horas e Minutos) e Questões
+    if minutos_cronometro > 0:
+        h_sug = minutos_cronometro // 60
+        m_sug = minutos_cronometro % 60
+    else:
+        h_sug = 1
+        m_sug = 0
+
+    c_h, c_m, c_q1, c_q2 = st.columns(4)
+    with c_h:
+        dur_horas = st.number_input(
+            "Horas:", 
+            min_value=0, 
+            max_value=24, 
+            value=int(h_sug), 
+            step=1, 
+            key="reg_dur_horas",
+            help="Horas inteiras de estudo."
         )
+    with c_m:
+        dur_minutos = st.number_input(
+            "Minutos:", 
+            min_value=0, 
+            max_value=59, 
+            value=int(m_sug), 
+            step=5, 
+            key="reg_dur_minutos",
+            help="Minutos adicionais (0 a 59)."
+        )
+    with c_q1:
+        q_total = st.number_input("Questões Feitas:", min_value=0, max_value=500, value=0, step=1, key="reg_q_total")
     with c_q2:
-        q_total = st.number_input("Questões Feitas:", min_value=0, max_value=300, value=0, step=1, key="reg_q_total")
-    with c_q3:
-        q_corretas = st.number_input("Questões Acertadas:", min_value=0, max_value=300, value=0, step=1, key="reg_q_corretas")
+        q_corretas = st.number_input("Questões Acertadas:", min_value=0, max_value=500, value=0, step=1, key="reg_q_corretas")
         
+    duracao_total_min = (int(dur_horas) * 60) + int(dur_minutos)
+    dur_str = f"{dur_horas}h {dur_minutos:02d}min" if dur_horas > 0 else f"{dur_minutos} min"
+    st.caption(f"⏱️ Tempo total da sessão: **{dur_str}** ({duracao_total_min} minutos líquidos)")
+    
     notas = st.text_area(
         "Anotações, Pontos Fortes, Pegadinhas de Banca:", 
         placeholder="Registre observações importantes para o seu Second Brain...",
@@ -1119,7 +1141,9 @@ with tab_reg:
     submitted = st.button("💾 Salvar Sessão", use_container_width=True, type="primary")
     
     if submitted:
-        if q_total > 0 and q_corretas > q_total:
+        if duracao_total_min <= 0:
+            st.error("❌ A duração do estudo precisa ser de pelo menos 1 minuto!")
+        elif q_total > 0 and q_corretas > q_total:
             st.error("❌ O número de acertos não pode ser maior que o total de questões!")
         else:
             try:
@@ -1133,7 +1157,7 @@ with tab_reg:
                     "subject": disciplina_selecionada,
                     "topic": topico_final,
                     "study_type": tipo_estudo_selecionado,
-                    "duration_min": int(duracao),
+                    "duration_min": int(duracao_total_min),
                     "questions_total": int(q_total),
                     "questions_correct": int(q_corretas),
                     "accuracy_pct": acc,
@@ -1158,7 +1182,7 @@ with tab_reg:
                 msg_gh = ""
                 gh_cfg_save = get_github_config()
                 if gh_cfg_save["token"]:
-                    commit_txt = f"feat(estudo): {nova_sessao['duration_min']}min em {nova_sessao['subject']} ({nova_sessao['certame_id']})"
+                    commit_txt = f"feat(estudo): {dur_str} em {nova_sessao['subject']} ({nova_sessao['certame_id']})"
                     ok_gh, res_gh = commit_file_to_github(
                         repo=gh_cfg_save["repo"],
                         file_path="data/sessions.json",
@@ -1171,7 +1195,7 @@ with tab_reg:
                 else:
                     msg_gh = " | ℹ️ Nuvem: salvo localmente"
                     
-                msg_completa = f"✅ **Sessão registrada com sucesso!** {duracao} min de **{tipo_estudo_selecionado}** em **{disciplina_selecionada}** ({opcoes_certames_form[certame_escolhido_id]}).{msg_cofre}{msg_gh}"
+                msg_completa = f"✅ **Sessão registrada com sucesso!** {dur_str} de **{tipo_estudo_selecionado}** em **{disciplina_selecionada}** ({opcoes_certames_form[certame_escolhido_id]}).{msg_cofre}{msg_gh}"
                 
                 st.session_state["feedback_registro"] = {
                     "status": "success",
