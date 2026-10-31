@@ -199,6 +199,103 @@ DEFAULT_CERTAMES = [
 ]
 
 # ==========================================
+# CRONOGRAMA & GRADE SEMANAL (REGRA 70/30)
+# ==========================================
+PLANO_SEMANAL_DPDF = [
+    {
+        "dia_idx": 0,
+        "dia": "Segunda-feira",
+        "bloco_1_materia": "Redes de Computadores",
+        "bloco_1_topico": "TCP/IP, Protocolos e Roteamento",
+        "bloco_1_tipo": "Específica (Peso 2)",
+        "bloco_1_horas": 1.0,
+        "bloco_2_materia": "Regime Jurídico dos Servidores (LC 840/2011)",
+        "bloco_2_topico": "Carreiras, regime e jornada / Direitos e Vantagens",
+        "bloco_2_tipo": "Básica (Peso 1)",
+        "bloco_2_horas": 1.0,
+        "foco": "Teoria objetiva + Resolução de questões de fixação"
+    },
+    {
+        "dia_idx": 1,
+        "dia": "Terça-feira",
+        "bloco_1_materia": "Sistemas Operacionais e Serviços",
+        "bloco_1_topico": "Linux, Unix, Windows Server, Shell & PowerShell",
+        "bloco_1_tipo": "Específica (Peso 2)",
+        "bloco_1_horas": 1.0,
+        "bloco_2_materia": "Redes de Computadores",
+        "bloco_2_topico": "VLAN, Trunking, VPN, Switches, QoS e Diagnóstico",
+        "bloco_2_tipo": "Específica (Peso 2)",
+        "bloco_2_horas": 1.0,
+        "foco": "Prática intensiva com questões comentadas de infraestrutura"
+    },
+    {
+        "dia_idx": 2,
+        "dia": "Quarta-feira",
+        "bloco_1_materia": "Segurança da Informação",
+        "bloco_1_topico": "ISO 27001/27002, Criptografia, Firewalls e Ameaças",
+        "bloco_1_tipo": "Específica (Peso 2)",
+        "bloco_1_horas": 1.0,
+        "bloco_2_materia": "Língua Portuguesa",
+        "bloco_2_topico": "Interpretação de Texto, Sintaxe e Pontuação (Banca ACCESS)",
+        "bloco_2_tipo": "Básica (Peso 1)",
+        "bloco_2_horas": 1.0,
+        "foco": "Resolução de provas anteriores da banca e análise de enunciados"
+    },
+    {
+        "dia_idx": 3,
+        "dia": "Quinta-feira",
+        "bloco_1_materia": "Virtualização e Nuvem",
+        "bloco_1_topico": "Docker, Kubernetes, Hipervisores, IaaS/PaaS/SaaS",
+        "bloco_1_tipo": "Específica (Peso 2)",
+        "bloco_1_horas": 1.0,
+        "bloco_2_materia": "LODF e LC nº 828/2010",
+        "bloco_2_topico": "Estrutura, competências e organização da Defensoria Pública do DF",
+        "bloco_2_tipo": "Básica (Peso 1)",
+        "bloco_2_horas": 1.0,
+        "foco": "Fixação de artigos-chave, prazos, competências e estrutura da DPDF"
+    },
+    {
+        "dia_idx": 4,
+        "dia": "Sexta-feira",
+        "bloco_1_materia": "Gestão e Governança de TI",
+        "bloco_1_topico": "ITIL 4, COBIT 2019, PMBOK 7 e Fiscalização de Contratos (IN 94/Lei 14.133)",
+        "bloco_1_tipo": "Específica (Peso 2)",
+        "bloco_1_horas": 1.0,
+        "bloco_2_materia": "Questão Discursiva Técnica TI (10 pts)",
+        "bloco_2_topico": "Redação técnica sobre Redes, Nuvem, Segurança ou Governança",
+        "bloco_2_tipo": "Discursiva Técnica (10 pts)",
+        "bloco_2_horas": 1.0,
+        "foco": "Redação estruturada no padrão de espelho de correção da banca"
+    },
+    {
+        "dia_idx": 5,
+        "dia": "Sábado (Opcional)",
+        "bloco_1_materia": "Caderno de Erros no Obsidian",
+        "bloco_1_topico": "Revisão atômica de pegadinhas e erros cometidos na semana",
+        "bloco_1_tipo": "Consolidação / Revisão",
+        "bloco_1_horas": 1.0,
+        "bloco_2_materia": "Noções de Primeiros Socorros / Política para Mulheres",
+        "bloco_2_topico": "Leitura rápida das normas complementares do DF",
+        "bloco_2_tipo": "Básica (Peso 1)",
+        "bloco_2_horas": 1.0,
+        "foco": "Manutenção do ritmo sem pressão ou reposição de pendência"
+    },
+    {
+        "dia_idx": 6,
+        "dia": "Domingo",
+        "bloco_1_materia": "Descanso & Recuperação",
+        "bloco_1_topico": "Lazer e descanso mental",
+        "bloco_1_tipo": "Recuperação",
+        "bloco_1_horas": 0.0,
+        "bloco_2_materia": "Planejamento da Semana",
+        "bloco_2_topico": "Alinhamento das metas para a segunda-feira",
+        "bloco_2_tipo": "Estratégia",
+        "bloco_2_horas": 0.0,
+        "foco": "Recarregar as energias para o ciclo semanal de 10 horas líquidas"
+    }
+]
+
+# ==========================================
 # FUNÇÕES DE PERSISTÊNCIA LOCAL & NUVEM
 # ==========================================
 def ensure_data_dir():
@@ -439,7 +536,15 @@ hoje = pd.to_datetime(date.today())
 inicio_semana = hoje - timedelta(days=hoje.weekday())
 inicio_mes = hoje.replace(day=1)
 
+def eh_basica(row):
+    blk = str(row.get("block", "")).lower()
+    sub = str(row.get("subject", "")).lower()
+    return ("básico" in blk or "basico" in blk or "gerais" in blk or "portuguesa" in sub or "840" in sub or "lodf" in sub or "penha" in sub or "socorros" in sub or "mulheres" in sub)
+
 if not df.empty:
+    df["is_basica"] = df.apply(eh_basica, axis=1)
+    df["tipo_bloco"] = df["is_basica"].apply(lambda x: "Básicas (Meta: 30%)" if x else "Específicas / Técnicas (Meta: 70%)")
+
     horas_hoje = df[df["date"] == hoje]["hours"].sum() if not df[df["date"] == hoje].empty else 0.0
     horas_semana = df[df["date"] >= inicio_semana]["hours"].sum() if not df[df["date"] >= inicio_semana].empty else 0.0
     horas_mes = df[df["date"] >= inicio_mes]["hours"].sum() if not df[df["date"] >= inicio_mes].empty else 0.0
@@ -448,9 +553,26 @@ if not df.empty:
     total_q_feitas = df["questions_total"].sum()
     total_q_acertos = df["questions_correct"].sum()
     taxa_geral = (total_q_acertos / total_q_feitas * 100.0) if total_q_feitas > 0 else 0.0
+
+    # Cálculos 70/30 na semana atual
+    df_sem = df[df["date"] >= inicio_semana]
+    horas_esp_sem = df_sem[~df_sem["is_basica"]]["hours"].sum() if not df_sem.empty else 0.0
+    horas_bas_sem = df_sem[df_sem["is_basica"]]["hours"].sum() if not df_sem.empty else 0.0
+    tot_sem_7030 = horas_esp_sem + horas_bas_sem
+    pct_esp_sem = (horas_esp_sem / tot_sem_7030 * 100.0) if tot_sem_7030 > 0 else 0.0
+    pct_bas_sem = (horas_bas_sem / tot_sem_7030 * 100.0) if tot_sem_7030 > 0 else 0.0
+
+    # Cálculos 70/30 acumulado geral
+    horas_esp_tot = df[~df["is_basica"]]["hours"].sum()
+    horas_bas_tot = df[df["is_basica"]]["hours"].sum()
+    tot_tot_7030 = horas_esp_tot + horas_bas_tot
+    pct_esp_tot = (horas_esp_tot / tot_tot_7030 * 100.0) if tot_tot_7030 > 0 else 0.0
+    pct_bas_tot = (horas_bas_tot / tot_tot_7030 * 100.0) if tot_tot_7030 > 0 else 0.0
 else:
     horas_hoje = horas_semana = horas_mes = horas_total = 0.0
     total_q_feitas = total_q_acertos = taxa_geral = 0.0
+    horas_esp_sem = horas_bas_sem = tot_sem_7030 = pct_esp_sem = pct_bas_sem = 0.0
+    horas_esp_tot = horas_bas_tot = tot_tot_7030 = pct_esp_tot = pct_bas_tot = 0.0
 
 # ==========================================
 # CABEÇALHO PRINCIPAL
@@ -468,8 +590,9 @@ st.markdown(f'<p class="sub-title">{sub_principal}</p>', unsafe_allow_html=True)
 # ==========================================
 # ABAS DE NAVEGAÇÃO
 # ==========================================
-tab_dash, tab_reg, tab_hist, tab_certames, tab_obsidian = st.tabs([
+tab_dash, tab_plano, tab_reg, tab_hist, tab_certames, tab_obsidian = st.tabs([
     "📊 Dashboard & Insights",
+    "🗓️ Plano de Estudos (Grade 70/30)",
     "⏱️ Registrar Sessão",
     "📋 Histórico & Gestão",
     "🏛️ Gerenciar Certames",
@@ -514,6 +637,36 @@ with tab_dash:
         )
         st.caption(f"{int(total_q_acertos)} acertos no total")
         
+    st.divider()
+
+    # 🎯 FOCO DE HOJE & EQUILÍBRIO 70/30
+    dia_idx_hoje = date.today().weekday()
+    item_hoje = PLANO_SEMANAL_DPDF[dia_idx_hoje]
+
+    col_h1, col_h2 = st.columns([1.2, 1.0])
+    with col_h1:
+        st.markdown(f"#### 🎯 O que estudar Hoje? (**{item_hoje['dia']}**)")
+        st.markdown(f"""
+        - 🔹 **Bloco 1 ({item_hoje['bloco_1_horas']:.0f}h):** **{item_hoje['bloco_1_materia']}**  
+          `{item_hoje['bloco_1_topico']}` — *{item_hoje['bloco_1_tipo']}*
+        - 🔸 **Bloco 2 ({item_hoje['bloco_2_horas']:.0f}h):** **{item_hoje['bloco_2_materia']}**  
+          `{item_hoje['bloco_2_topico']}` — *{item_hoje['bloco_2_tipo']}*
+        - 💡 *Foco metodológico:* {item_hoje['foco']}
+        """)
+    with col_h2:
+        st.markdown("#### ⚖️ Termômetro da Regra 70/30 (Semana)")
+        if tot_sem_7030 > 0:
+            st.markdown(f"**Específicas:** `{horas_esp_sem:.1f}h` ({pct_esp_sem:.0f}%) | **Básicas:** `{horas_bas_sem:.1f}h` ({pct_bas_sem:.0f}%)")
+            st.progress(min(pct_esp_sem / 100.0, 1.0), text=f"Alocação em Específicas: {pct_esp_sem:.0f}% (Alvo: 70%)")
+            if 60 <= pct_esp_sem <= 80:
+                st.success("🟢 Proporção perfeita! Alocação 70/30 impecável.")
+            elif pct_esp_sem > 80:
+                st.warning("🟡 Específicas altas! Lembre-se de dedicar 30% às Básicas para pontuar e não zerar Português.")
+            else:
+                st.info("ℹ️ Reforce as Específicas: elas representam 75,7% da nota final da DPDF!")
+        else:
+            st.caption("Nenhum estudo computado nesta semana. Siga a grade de hoje para pontuar!")
+            st.markdown("🎯 **Meta semanal:** `7,0h` Específicas (70%) e `3,0h` Básicas (30%).")
     st.divider()
     
     if df.empty:
@@ -626,6 +779,139 @@ with tab_dash:
             fig_consist.add_hline(y=meta_dia, line_dash="dash", line_color="#FFB300", annotation_text=f"Meta ({meta_dia:.0f}h)")
             fig_consist.update_layout(margin=dict(t=10, b=10, l=10, r=10), coloraxis_showscale=False)
             st.plotly_chart(fig_consist, use_container_width=True)
+
+# ------------------------------------------
+# TAB: PLANO DE ESTUDOS & GRADE 70/30
+# ------------------------------------------
+with tab_plano:
+    st.subheader("🗓️ Plano Estratégico de Estudos — Ciclo Semanal 70/30")
+    st.caption("Grade metodológica desenhada para maximizar pontuação com base nos pesos e critérios de corte do edital DPDF (2h/dia | 10h/semana).")
+    
+    # 1. Racional da Matemática da Aprovação
+    with st.expander("⚖️ A Matemática da Aprovação (Por que a Regra 70/30?)", expanded=False):
+        c_p1, c_p2 = st.columns([1.2, 1.0])
+        with c_p1:
+            st.markdown("""
+            A pontuação máxima do certame DPDF é de **169,0 pontos**:
+            * **Conhecimentos Específicos Objetiva:** 49 questões × peso 2 = **98,0 pontos** (58,0% da prova)
+            * **3 Questões Discursivas Técnicas:** 3 × 10 = **30,0 pontos** (17,8% da prova)
+            * **Subtotal Núcleo Técnico (Específicas):** **128,0 de 169,0 pontos (75,7% de todo o concurso!)**
+            * **1 Dissertação Geral:** **20,0 pontos** (11,8%)
+            * **Conhecimentos Básicos Objetiva:** 21 questões × peso 1 = **21,0 pontos** (12,4%)
+            """)
+        with c_p2:
+            st.info("""
+            **🎯 Estratégia dos 70 / 30:**
+            - **70% do tempo (7h/semana):** Dedicado ao núcleo técnico de Redes, Sistemas Operacionais, Segurança, Governança, Nuvem e Discursivas Técnicas.
+            - **30% do tempo (3h/semana):** Dedicado aos Conhecimentos Básicos para bater o corte com folga (mínimo de 11 acertos de 21) e não zerar Língua Portuguesa.
+            """)
+            
+    st.divider()
+    
+    # 2. Termômetro e Gráficos Comparativos Meta vs Realizado
+    st.subheader("📊 Termômetro de Alocação de Tempo (Meta 70/30 vs Realidade)")
+    col_t1, col_t2 = st.columns(2)
+    
+    with col_t1:
+        st.markdown("##### 🗓️ Alocação Nesta Semana (Segunda a Domingo)")
+        if tot_sem_7030 > 0:
+            df_comp_sem = pd.DataFrame({
+                "Categoria": ["Específicas / Técnicas", "Conhecimentos Básicos"],
+                "Realizado (h)": [horas_esp_sem, horas_bas_sem],
+                "Meta Teórica (h)": [7.0, 3.0]
+            })
+            fig_bar_7030 = go.Figure(data=[
+                go.Bar(name='Horas Estudadas', x=df_comp_sem['Categoria'], y=df_comp_sem['Realizado (h)'], marker_color=['#1E88E5', '#FFB300']),
+                go.Bar(name='Meta da Grade (70/30)', x=df_comp_sem['Categoria'], y=df_comp_sem['Meta Teórica (h)'], marker_color=['#90CAF9', '#FFE082'], opacity=0.5)
+            ])
+            fig_bar_7030.update_layout(barmode='group', margin=dict(t=10, b=10, l=10, r=10), height=260)
+            st.plotly_chart(fig_bar_7030, use_container_width=True)
+            st.caption(f"Semana Atual: **{pct_esp_sem:.1f}% Específicas** vs **{pct_bas_sem:.1f}% Básicas** (Total: {tot_sem_7030:.1f}h)")
+        else:
+            st.info("💡 Nenhuma sessão registrada nesta semana ainda. A meta da grade é **7,0h Específicas** e **3,0h Básicas**.")
+            
+    with col_t2:
+        st.markdown("##### 🌐 Alocação na Trajetória Acumulada")
+        if tot_tot_7030 > 0:
+            df_pie_7030 = pd.DataFrame({
+                "Categoria": [f"Específicas ({pct_esp_tot:.0f}%)", f"Básicas ({pct_bas_tot:.0f}%)"],
+                "Horas": [horas_esp_tot, horas_bas_tot]
+            })
+            fig_pie_7030 = px.pie(
+                df_pie_7030, 
+                values="Horas", 
+                names="Categoria",
+                hole=0.45,
+                color="Categoria",
+                color_discrete_map={
+                    f"Específicas ({pct_esp_tot:.0f}%)": "#1E88E5",
+                    f"Básicas ({pct_bas_tot:.0f}%)": "#FFB300"
+                }
+            )
+            fig_pie_7030.update_traces(textinfo="percent+label")
+            fig_pie_7030.update_layout(margin=dict(t=10, b=10, l=10, r=10), showlegend=False, height=260)
+            st.plotly_chart(fig_pie_7030, use_container_width=True)
+            st.caption(f"Histórico Geral: **{horas_esp_tot:.1f}h** Específicas ({pct_esp_tot:.1f}%) | **{horas_bas_tot:.1f}h** Básicas ({pct_bas_tot:.1f}%)")
+        else:
+            st.info("💡 O gráfico de proporção acumulada será exibido assim que as primeiras horas forem registradas.")
+            
+    st.divider()
+    
+    # 3. Grade Semanal Detalhada (Dia a Dia)
+    st.subheader("📅 Grade Semanal de Estudos (2h/dia — 2 blocos de 1h)")
+    st.markdown("Distribuição estratégica diária das matérias para cobrir todo o conteúdo com alto rendimento:")
+    
+    dia_atual_idx = date.today().weekday()
+    
+    for item in PLANO_SEMANAL_DPDF:
+        is_hoje = (item["dia_idx"] == dia_atual_idx)
+        badge_hoje = " 🔥 **[HOJE]**" if is_hoje else ""
+        icone_dia = "🟢" if is_hoje else "🗓️"
+        
+        with st.expander(f"{icone_dia} **{item['dia']}** — {item['bloco_1_materia']} + {item['bloco_2_materia']}{badge_hoje}", expanded=is_hoje):
+            c_dia1, c_dia2 = st.columns(2)
+            with c_dia1:
+                st.markdown(f"##### 1️⃣ Bloco 1 ({item['bloco_1_horas']:.0f}h)")
+                st.markdown(f"**Disciplina:** {item['bloco_1_materia']}")
+                st.markdown(f"**Tópicos:** `{item['bloco_1_topico']}`")
+                st.caption(f"Categoria: **{item['bloco_1_tipo']}**")
+            with c_dia2:
+                st.markdown(f"##### 2️⃣ Bloco 2 ({item['bloco_2_horas']:.0f}h)")
+                st.markdown(f"**Disciplina:** {item['bloco_2_materia']}")
+                st.markdown(f"**Tópicos:** `{item['bloco_2_topico']}`")
+                st.caption(f"Categoria: **{item['bloco_2_tipo']}**")
+                
+            st.info(f"🎯 **Foco Metodológico:** {item['foco']}")
+            
+    st.divider()
+    
+    # 4. Fases da Preparação até a Prova
+    st.subheader("🚀 Cronograma de Fases até a Prova (21/02/2027)")
+    c_fase1, c_fase2, c_fase3 = st.columns(3)
+    with c_fase1:
+        st.markdown("#### 🧱 Fase 1: Edificação")
+        st.caption("Semanas 1 a 8 (Nov e Dez/2026)")
+        st.markdown("""
+        * Varrer tópicos densos de Redes, Linux, Windows e Segurança.
+        * Cobrir a legislação: LC 840/2011, LODF/LC 828 e Maria da Penha.
+        * Treinar 1 questão discursiva técnica por semana (Sexta-feira).
+        """)
+    with c_fase2:
+        st.markdown("#### ⚡ Fase 2: Intensiva")
+        st.caption("Semanas 9 a 13 (Janeiro/2027)")
+        st.markdown("""
+        * Baterias intensivas de questões do Instituto ACCESS e bancas irmãs.
+        * Treino de discursivas técnicas com cronômetro (3 questões em 3h).
+        * Alimentação contínua do Caderno de Erros no Obsidian.
+        """)
+    with c_fase3:
+        st.markdown("#### 🎯 Fase 3: Reta Final")
+        st.caption("Semanas 14 a 16 (Fevereiro/2027)")
+        st.markdown("""
+        * Revisão atômica focada estritamente nos pontos fracos e pegadinhas.
+        * 2 simulados completos simulando os turnos oficiais da prova.
+        * Consolidação de prazos, competências e fórmulas.
+        """)
 
 # ------------------------------------------
 # TAB 2: REGISTRAR SESSÃO
