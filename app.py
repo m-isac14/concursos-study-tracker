@@ -1066,44 +1066,12 @@ with tab_reg:
         if not topico_final.strip():
             topico_final = disciplina_selecionada
     
-    col_tipo, col_tipo_cfg = st.columns([1.5, 1.0])
-    with col_tipo:
-        tipo_estudo_selecionado = st.selectbox(
-            "Modalidade / Tipo de Estudo:",
-            options=st.session_state.study_types,
-            key=f"reg_tipo_estudo_{certame_escolhido_id}",
-            help="Selecione o formato de estudo realizado (Vídeoaula, Questões, PDF, Lei Seca, etc.)."
-        )
-    with col_tipo_cfg:
-        with st.expander("⚙️ Gerenciar Categorias (Adicionar / Remover)"):
-            st.caption("Adicione novas modalidades ou exclua as existentes sem tocar no código:")
-            c_add1, c_add2 = st.columns([2, 1])
-            with c_add1:
-                novo_tipo_input = st.text_input("Novo Tipo:", placeholder="Ex: Podcast / Áudio", key="input_add_tipo", label_visibility="collapsed")
-            with c_add2:
-                if st.button("➕ Adicionar", use_container_width=True, key="btn_add_tipo"):
-                    val = novo_tipo_input.strip()
-                    if val:
-                        if val not in st.session_state.study_types:
-                            st.session_state.study_types.append(val)
-                            save_study_types(st.session_state.study_types)
-                            st.success(f"'{val}' adicionado!")
-                            st.rerun()
-                        else:
-                            st.warning("Tipo já cadastrado.")
-            
-            c_del1, c_del2 = st.columns([2, 1])
-            with c_del1:
-                tipo_del_sel = st.selectbox("Excluir Tipo:", options=st.session_state.study_types, key="sel_del_tipo", label_visibility="collapsed")
-            with c_del2:
-                if st.button("🗑️ Excluir", use_container_width=True, key="btn_del_tipo"):
-                    if len(st.session_state.study_types) > 1:
-                        st.session_state.study_types.remove(tipo_del_sel)
-                        save_study_types(st.session_state.study_types)
-                        st.success(f"'{tipo_del_sel}' excluído!")
-                        st.rerun()
-                    else:
-                        st.error("Mantenha ao menos 1 modalidade.")
+    tipo_estudo_selecionado = st.selectbox(
+        "Modalidade / Tipo de Estudo:",
+        options=st.session_state.study_types,
+        key=f"reg_tipo_estudo_{certame_escolhido_id}",
+        help="Selecione o formato de estudo realizado (Vídeoaula, Questões, PDF, Lei Seca, etc.)."
+    )
     
     c_q1, c_q2, c_q3 = st.columns(3)
     with c_q1:
@@ -1365,10 +1333,27 @@ with tab_certames:
     c_mgt1, c_mgt2 = st.columns(2)
     with c_mgt1:
         st.markdown("##### ➕ Adicionar Nova Modalidade")
-        novo_tipo_tab4 = st.text_input("Nome da Modalidade (com emoji opcional):", placeholder="Ex: 🎧 Podcast / Áudio", key="tab4_novo_tipo")
+        
+        EMOJIS_SUGERIDOS = [
+            "📹", "🎯", "📖", "⚖️", "✍️", "🧠", "📝", "🎧", 
+            "📚", "💻", "🔥", "⚡", "💡", "📑", "🔍", "🎓"
+        ]
+        
+        c_em, c_nm = st.columns([1, 2.5])
+        with c_em:
+            emoji_escolhido = st.selectbox("Emoji:", options=EMOJIS_SUGERIDOS, key="tab4_emoji_sel")
+        with c_nm:
+            novo_tipo_tab4 = st.text_input("Nome da Modalidade:", placeholder="Ex: Podcast / Áudio", key="tab4_novo_tipo")
+            
         if st.button("Salvar Nova Modalidade", use_container_width=True, key="tab4_btn_add"):
-            val_t4 = novo_tipo_tab4.strip()
-            if val_t4:
+            nome_limpo = novo_tipo_tab4.strip()
+            if nome_limpo:
+                # Se o usuário já não colocou emoji no texto, prefixa o emoji escolhido
+                if any(ord(char) > 127 and char in emoji_escolhido for char in nome_limpo):
+                    val_t4 = nome_limpo
+                else:
+                    val_t4 = f"{emoji_escolhido} {nome_limpo}"
+                    
                 if val_t4 not in st.session_state.study_types:
                     st.session_state.study_types.append(val_t4)
                     save_study_types(st.session_state.study_types)
