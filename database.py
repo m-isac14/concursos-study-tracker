@@ -20,6 +20,24 @@ def ensure_data_dir():
 
 def get_database_url() -> str | None:
     """Recupera a URL de conexão do PostgreSQL de st.secrets ou variável de ambiente."""
+    # 0. Tenta carregar diretamente do arquivo local .streamlit/secrets.toml
+    secrets_file = os.path.join(os.path.dirname(__file__), ".streamlit", "secrets.toml")
+    if os.path.exists(secrets_file):
+        try:
+            import tomllib
+            with open(secrets_file, "rb") as f:
+                sec_data = tomllib.load(f)
+                if "connections" in sec_data and "postgresql" in sec_data["connections"]:
+                    cfg = sec_data["connections"]["postgresql"]
+                    if isinstance(cfg, dict) and "url" in cfg:
+                        return cfg["url"]
+                    if isinstance(cfg, str):
+                        return cfg
+                if "DATABASE_URL" in sec_data:
+                    return sec_data["DATABASE_URL"]
+        except Exception:
+            pass
+
     # 1. Tenta conexões nomeadas do Streamlit ([connections.postgresql])
     try:
         if "connections" in st.secrets and "postgresql" in st.secrets["connections"]:
@@ -55,9 +73,11 @@ def get_engine() -> Engine | None:
     if not db_url:
         return None
     try:
-        # Corrige prefixo postgres:// para postgresql:// exigido pelo SQLAlchemy 2.0
+        # Normaliza prefixo para o driver psycopg2 instalado
         if db_url.startswith("postgres://"):
-            db_url = db_url.replace("postgres://", "postgresql://", 1)
+            db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+        elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
+            db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
         
         # Garante suporte a SSL para Supabase / Neon
         engine = create_engine(
