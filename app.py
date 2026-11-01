@@ -12,6 +12,18 @@ from github_sync import (
     commit_file_to_github,
     sync_session_to_obsidian_idempotent
 )
+from database import (
+    is_db_connected,
+    init_db,
+    db_load_certames,
+    db_save_certame,
+    db_load_sessions,
+    db_insert_session,
+    db_delete_session,
+    db_load_study_types,
+    db_add_study_type,
+    db_delete_study_type
+)
 
 # ==========================================
 # 1. CONFIGURAÇÃO DA PÁGINA & DESIGN SYSTEM
@@ -646,31 +658,17 @@ def ensure_data_dir():
         os.makedirs(DATA_DIR, exist_ok=True)
 
 def load_certames():
-    ensure_data_dir()
-    if os.path.exists(CERTAMES_FILE):
-        try:
-            with open(CERTAMES_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return DEFAULT_CERTAMES
-    else:
-        save_certames(DEFAULT_CERTAMES)
-        return DEFAULT_CERTAMES
+    return db_load_certames(DEFAULT_CERTAMES)
 
 def save_certames(certames):
     ensure_data_dir()
+    for c in certames:
+        db_save_certame(c)
     with open(CERTAMES_FILE, "w", encoding="utf-8") as f:
         json.dump(certames, f, ensure_ascii=False, indent=2)
 
 def load_sessions():
-    ensure_data_dir()
-    if os.path.exists(SESSIONS_FILE):
-        try:
-            with open(SESSIONS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return []
-    return []
+    return db_load_sessions()
 
 def save_sessions(sessions):
     ensure_data_dir()
@@ -678,17 +676,7 @@ def save_sessions(sessions):
         json.dump(sessions, f, ensure_ascii=False, indent=2)
 
 def load_study_types():
-    ensure_data_dir()
-    if os.path.exists(STUDY_TYPES_FILE):
-        try:
-            with open(STUDY_TYPES_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if isinstance(data, list) and len(data) > 0:
-                    return data
-        except Exception:
-            pass
-    save_study_types(DEFAULT_STUDY_TYPES)
-    return list(DEFAULT_STUDY_TYPES)
+    return db_load_study_types(DEFAULT_STUDY_TYPES)
 
 def save_study_types(types_list):
     ensure_data_dir()
@@ -734,8 +722,13 @@ def push_to_github(commit_msg="refactor(data): sync sessions"):
     return success, msg
 
 # ==========================================
-# 4. INICIALIZAÇÃO DO SESSION_STATE
+# 4. INICIALIZAÇÃO DO BANCO & SESSION_STATE
 # ==========================================
+if "db_initialized" not in st.session_state:
+    st.session_state.db_initialized = True
+    if is_db_connected():
+        init_db(DEFAULT_CERTAMES, DEFAULT_STUDY_TYPES)
+
 if "certames" not in st.session_state:
     st.session_state.certames = load_certames()
 if "sessions" not in st.session_state:
@@ -747,9 +740,10 @@ if "completed_blocks_today" not in st.session_state:
 
 if "initial_gh_pull_done" not in st.session_state:
     st.session_state.initial_gh_pull_done = True
-    gh_cfg_init = get_github_config()
-    if gh_cfg_init["token"] and not st.session_state.sessions:
-        pull_from_github_and_merge()
+    if not is_db_connected():
+        gh_cfg_init = get_github_config()
+        if gh_cfg_init["token"] and not st.session_state.sessions:
+            pull_from_github_and_merge()
 
 # Estado do cronômetro
 if "timer_running" not in st.session_state:
@@ -1130,9 +1124,10 @@ with st.sidebar:
     cofre_conectado = os.path.exists(cofre_path)
 
     st.markdown("<div style='font-size:0.8rem;font-weight:600;color:#334155;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.45rem;'>☁️ Status de Sincronização</div>", unsafe_allow_html=True)
-    gh_badge = '<span class="pill pill-emerald">● GitHub Conectado</span>' if gh_cfg["token"] else '<span class="pill pill-slate">○ GitHub Leitura</span>'
-    obs_badge = '<span class="pill pill-indigo">● Cofre Obsidian Ativo</span>' if cofre_conectado else '<span class="pill pill-amber">○ Modo Nuvem</span>'
-    st.markdown(f"<div style='display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:0.65rem;'>{gh_badge}{obs_badge}</div>", unsafe_allow_html=True)
+    db_badge = '<span class="pill pill-emerald">🐘 PostgreSQL Ativo</span>' if is_db_connected() else '<span class="pill pill-slate">🐘 Modo JSON Local</span>'
+    gh_badge = '<span class="pill pill-emerald">● GitHub Conectado</span>' if gh_cfg["token"] else '<span class="pill pill-rose">○ GitHub Desconectado</span>'
+    obs_badge = '<span class="pill pill-indigo">● Cofre Obsidian Ativo</span>' if cofre_conectado else '<span class="pill pill-slate">○ Cofre Desconectado</span>'
+    st.markdown(f"<div style='display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:0.65rem;'>{db_badge}{gh_badge}{obs_badge}</div>", unsafe_allow_html=True)
 
     col_gh_s1, col_gh_s2 = st.columns(2)
     with col_gh_s1:
@@ -1825,6 +1820,16 @@ with tab_reg:
             st.error(fb.get("mensagem", "Erro ao salvar a sessão."))
         del st.session_state["feedback_registro"]
 
+    gh_cfg_status = get_github_config()
+    if not is_db_connected() and not cofre_conectado and not gh_cfg_status["token"]:
+        st.warning(
+            "⚠️ **Atenção: Modo Nuvem Volátil (Sem Persistência)** — "
+            "Este aplicativo está rodando na nuvem sem conexão de escrita com o GitHub ou PostgreSQL. "
+            "Qualquer sessão registrada agora será **perdida se o servidor reiniciar ou for atualizado**. "
+            "Para salvar seus estudos permanentemente, configure o **PostgreSQL (Supabase)** ou `GITHUB_TOKEN` nos Secrets do Streamlit Cloud "
+            "(veja o passo a passo na aba **⚙️ Certames & Sincronização**) ou execute o app localmente no seu computador via `iniciar_estudos.bat`."
+        )
+
     # 1. Cronômetro Visualmente Centralizado e Imersivo (com atualização em tempo real via st.fragment)
     @st.fragment(run_every=1.0 if st.session_state.timer_running else None)
     def render_immersive_timer():
@@ -2064,6 +2069,7 @@ with tab_reg:
 
                     st.session_state.sessions.append(nova_sessao)
                     save_sessions(st.session_state.sessions)
+                    ok_db, res_db = db_insert_session(nova_sessao)
 
                     if get_current_elapsed_seconds() > 0:
                         st.session_state.timer_running = False
@@ -2075,23 +2081,26 @@ with tab_reg:
                         ok_c, res_c = sync_session_to_obsidian_idempotent(nova_sessao, cofre_path)
                         msg_cofre = f" | 🧠 Obsidian: {res_c}" if ok_c else f" | ⚠️ Obsidian: {res_c}"
 
-                    msg_gh = ""
-                    gh_cfg_save = get_github_config()
-                    if gh_cfg_save["token"]:
-                        commit_txt = f"feat(estudo): {dur_str} em {nova_sessao['subject']} ({nova_sessao['certame_id']})"
-                        ok_gh, res_gh = commit_file_to_github(
-                            repo=gh_cfg_save["repo"],
-                            file_path="data/sessions.json",
-                            data_obj=st.session_state.sessions,
-                            commit_message=commit_txt,
-                            branch=gh_cfg_save["branch"],
-                            token=gh_cfg_save["token"]
-                        )
-                        msg_gh = f" | ☁️ GitHub: {res_gh}" if ok_gh else f" | ⚠️ GitHub: {res_gh}"
+                    msg_storage = ""
+                    if is_db_connected():
+                        msg_storage = " | 🐘 PostgreSQL: Salvo com sucesso"
                     else:
-                        msg_gh = " | ℹ️ Salvo localmente"
+                        gh_cfg_save = get_github_config()
+                        if gh_cfg_save["token"]:
+                            commit_txt = f"feat(estudo): {dur_str} em {nova_sessao['subject']} ({nova_sessao['certame_id']})"
+                            ok_gh, res_gh = commit_file_to_github(
+                                repo=gh_cfg_save["repo"],
+                                file_path="data/sessions.json",
+                                data_obj=st.session_state.sessions,
+                                commit_message=commit_txt,
+                                branch=gh_cfg_save["branch"],
+                                token=gh_cfg_save["token"]
+                            )
+                            msg_storage = f" | ☁️ GitHub: {res_gh}" if ok_gh else f" | ⚠️ GitHub: {res_gh}"
+                        else:
+                            msg_storage = " | ℹ️ Salvo localmente (JSON)"
 
-                    msg_completa = f"✅ **Sessão registrada!** {dur_str} de **{tipo_estudo_selecionado}** em **{disciplina_selecionada}** ({opcoes_certames_form[certame_escolhido_id]}).{msg_cofre}{msg_gh}"
+                    msg_completa = f"✅ **Sessão registrada!** {dur_str} de **{tipo_estudo_selecionado}** em **{disciplina_selecionada}** ({opcoes_certames_form[certame_escolhido_id]}).{msg_cofre}{msg_storage}"
                     st.session_state["feedback_registro"] = {
                         "status": "success",
                         "mensagem": msg_completa,
@@ -2219,6 +2228,7 @@ with tab_hist:
                 }
                 id_del = st.selectbox("Selecione a sessão:", options=list(opcoes_del_sess.keys()), format_func=lambda x: opcoes_del_sess[x], key="del_sess_sel")
                 if st.button("Confirmar Exclusão da Sessão", key="btn_del_sess", use_container_width=True):
+                    db_delete_session(id_del)
                     st.session_state.sessions = [s for s in st.session_state.sessions if str(s.get("id")) != str(id_del)]
                     save_sessions(st.session_state.sessions)
                     st.toast("Sessão removida com sucesso!", icon="🗑️")
@@ -2395,23 +2405,53 @@ with tab_certames:
                 else:
                     st.error("O sistema deve manter pelo menos uma modalidade cadastrada.")
 
-    with st.expander("🔑 Configurações de Conexão (GitHub PAT & Caminho do Cofre Obsidian)", expanded=False):
+    expanded_cfg = (not is_db_connected() and not gh_cfg["token"] and not cofre_conectado)
+    with st.expander("🔑 Configurações de Conexão (PostgreSQL Nuvem, GitHub & Obsidian)", expanded=expanded_cfg):
         c_cfg1, c_cfg2 = st.columns(2)
         with c_cfg1:
+            st.markdown("##### 🐘 Banco Relacional PostgreSQL (Supabase / Neon) [Recomendado]")
+            if is_db_connected():
+                st.success("✅ **PostgreSQL Conectado!** Estudos, certames e modalidades são gravados de forma atômica no banco de dados na nuvem.")
+            else:
+                st.info("ℹ️ PostgreSQL não conectado. Operando em modo de arquivos JSON.")
+                st.markdown("""
+                **Como conectar seu PostgreSQL gratuito (Supabase ou Neon):**
+                1. Crie seu projeto no [supabase.com](https://supabase.com) ou [neon.tech](https://neon.tech);
+                2. Copie a **URI de Conexão** (formato `postgresql://postgres:[SENHA]@...`);
+                3. No Streamlit Cloud (**Settings > Secrets**) ou no PC (`.streamlit/secrets.toml`), cole:
+                ```toml
+                [connections.postgresql]
+                url = "postgresql://postgres:SUA_SENHA@db.xxxx.supabase.co:5432/postgres"
+                ```
+                """)
+                url_test = st.text_input("Ou cole a Connection String para testar agora:", type="password", placeholder="postgresql://postgres:senha@host:5432/postgres", key="cfg_db_url_input")
+                if st.button("🔌 Conectar ao PostgreSQL", key="btn_test_db"):
+                    if url_test.strip():
+                        st.session_state["custom_db_url"] = url_test.strip()
+                        st.cache_resource.clear()
+                        st.rerun()
+
+            st.write("")
+            st.markdown("##### 🐙 Backup Secundário no GitHub (Opcional)")
             token_input = st.text_input(
                 "GitHub Personal Access Token (PAT):",
                 value=st.session_state.get("custom_github_token", ""),
                 type="password",
                 placeholder="ghp_...",
-                help="Token com escopo 'repo' para commits automáticos na nuvem."
+                help="Opcional quando conectado ao PostgreSQL."
             )
             if token_input:
                 st.session_state["custom_github_token"] = token_input
-            st.markdown("[🔗 Gerar Token no GitHub com 1 clique](https://github.com/settings/tokens/new?scopes=repo&description=Concursos+Study+Tracker)")
+            st.markdown("[🔗 Gerar Token no GitHub](https://github.com/settings/tokens/new?scopes=repo&description=Concursos+Study+Tracker)")
         with c_cfg2:
+            st.markdown("##### 🧠 Caminho Local do Cofre Obsidian (Apenas no Computador)")
             novo_cofre_path = st.text_input("Diretório Local do Cofre Obsidian:", value=cofre_path)
             if novo_cofre_path:
                 st.session_state["custom_cofre_path"] = novo_cofre_path
+            if cofre_conectado:
+                st.success("✅ Diretório do cofre conectado localmente neste PC.")
+            else:
+                st.info("ℹ️ Cofre não acessível diretamente (comportamento esperado se estiver rodando na nuvem).")
 
     with st.expander("📋 Snippets Prontos do Dataview para o Obsidian", expanded=False):
         st.markdown("**1. Todas as Sessões da Trajetória:**")
