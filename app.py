@@ -1130,8 +1130,8 @@ with st.sidebar:
     cofre_conectado = os.path.exists(cofre_path)
 
     st.markdown("<div style='font-size:0.8rem;font-weight:600;color:#334155;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.45rem;'>☁️ Status de Sincronização</div>", unsafe_allow_html=True)
-    gh_badge = '<span class="pill pill-emerald">● GitHub Conectado</span>' if gh_cfg["token"] else '<span class="pill pill-slate">○ GitHub Leitura</span>'
-    obs_badge = '<span class="pill pill-indigo">● Cofre Obsidian Ativo</span>' if cofre_conectado else '<span class="pill pill-amber">○ Modo Nuvem</span>'
+    gh_badge = '<span class="pill pill-emerald">● GitHub Conectado</span>' if gh_cfg["token"] else '<span class="pill pill-rose">○ GitHub Desconectado</span>'
+    obs_badge = '<span class="pill pill-indigo">● Cofre Obsidian Ativo</span>' if cofre_conectado else '<span class="pill pill-slate">○ Cofre Desconectado</span>'
     st.markdown(f"<div style='display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:0.65rem;'>{gh_badge}{obs_badge}</div>", unsafe_allow_html=True)
 
     col_gh_s1, col_gh_s2 = st.columns(2)
@@ -1825,6 +1825,16 @@ with tab_reg:
             st.error(fb.get("mensagem", "Erro ao salvar a sessão."))
         del st.session_state["feedback_registro"]
 
+    gh_cfg_status = get_github_config()
+    if not cofre_conectado and not gh_cfg_status["token"]:
+        st.warning(
+            "⚠️ **Atenção: Modo Nuvem Volátil (Sem Persistência)** — "
+            "Este aplicativo está rodando na nuvem sem conexão de escrita com o GitHub. "
+            "Qualquer sessão registrada agora será **perdida se o servidor reiniciar ou for atualizado**. "
+            "Para salvar seus estudos permanentemente, configure o `GITHUB_TOKEN` nos Secrets do Streamlit Cloud "
+            "(veja o passo a passo na aba **⚙️ Certames & Sincronização**) ou execute o app localmente no seu computador via `iniciar_estudos.bat`."
+        )
+
     # 1. Cronômetro Visualmente Centralizado e Imersivo (com atualização em tempo real via st.fragment)
     @st.fragment(run_every=1.0 if st.session_state.timer_running else None)
     def render_immersive_timer():
@@ -2395,23 +2405,43 @@ with tab_certames:
                 else:
                     st.error("O sistema deve manter pelo menos uma modalidade cadastrada.")
 
-    with st.expander("🔑 Configurações de Conexão (GitHub PAT & Caminho do Cofre Obsidian)", expanded=False):
+    expanded_cfg = (not gh_cfg["token"] and not cofre_conectado)
+    with st.expander("🔑 Configurações de Conexão (GitHub PAT & Persistência em Nuvem)", expanded=expanded_cfg):
         c_cfg1, c_cfg2 = st.columns(2)
         with c_cfg1:
+            st.markdown("##### ☁️ Persistência Permanente no Streamlit Cloud")
+            st.markdown("""
+            Para que os estudos fiquem gravados permanentemente na nuvem sem risco de perda:
+            1. Acesse seu painel no [share.streamlit.io](https://share.streamlit.io);
+            2. No seu app (`estudo-concurso`), clique em **Settings > Secrets**;
+            3. Cole a configuração abaixo e clique em **Save**:
+            ```toml
+            GITHUB_TOKEN = "ghp_SEU_TOKEN_AQUI"
+            GITHUB_REPO = "m-isac14/concursos-study-tracker"
+            GITHUB_BRANCH = "main"
+            ```
+            """)
+            st.markdown("[🔗 Gerar Token no GitHub com 1 clique (Escopo 'repo')](https://github.com/settings/tokens/new?scopes=repo&description=Concursos+Study+Tracker)")
+
+            st.write("")
             token_input = st.text_input(
-                "GitHub Personal Access Token (PAT):",
+                "Ou insira seu GitHub Token para esta sessão temporária:",
                 value=st.session_state.get("custom_github_token", ""),
                 type="password",
                 placeholder="ghp_...",
-                help="Token com escopo 'repo' para commits automáticos na nuvem."
+                help="Token temporário na memória da sessão atual."
             )
             if token_input:
                 st.session_state["custom_github_token"] = token_input
-            st.markdown("[🔗 Gerar Token no GitHub com 1 clique](https://github.com/settings/tokens/new?scopes=repo&description=Concursos+Study+Tracker)")
         with c_cfg2:
+            st.markdown("##### 🧠 Caminho Local do Cofre Obsidian (Apenas no Computador)")
             novo_cofre_path = st.text_input("Diretório Local do Cofre Obsidian:", value=cofre_path)
             if novo_cofre_path:
                 st.session_state["custom_cofre_path"] = novo_cofre_path
+            if cofre_conectado:
+                st.success("✅ Diretório do cofre conectado localmente neste PC.")
+            else:
+                st.info("ℹ️ Cofre não acessível diretamente (comportamento esperado se estiver rodando na nuvem).")
 
     with st.expander("📋 Snippets Prontos do Dataview para o Obsidian", expanded=False):
         st.markdown("**1. Todas as Sessões da Trajetória:**")
