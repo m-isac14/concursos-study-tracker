@@ -2412,8 +2412,20 @@ with tab_certames:
             st.markdown("##### 🐘 Banco Relacional PostgreSQL (Supabase / Neon) [Recomendado]")
             if is_db_connected():
                 st.success("✅ **PostgreSQL Conectado!** Estudos, certames e modalidades são gravados de forma atômica no banco de dados na nuvem.")
+                if st.button("🔄 Reconectar / Atualizar Conexão do Banco", key="btn_reconn_db"):
+                    st.cache_resource.clear()
+                    st.rerun()
             else:
                 st.info("ℹ️ PostgreSQL não conectado. Operando em modo de arquivos JSON.")
+                if st.session_state.get("db_last_error"):
+                    st.error(f"❌ **Diagnóstico de Conexão:** {st.session_state['db_last_error']}")
+                    err_txt = str(st.session_state["db_last_error"])
+                    if any(s in err_txt for s in ["Network is unreachable", "getaddrinfo", "not known", "timed out", "timeout"]):
+                        st.warning("💡 **Dica IPv4 vs IPv6:** O Streamlit Cloud opera em rede IPv4. A *Direct Connection* (`db.xxx.supabase.co`) exige rede IPv6. No Supabase, clique no botão **Connect** no topo do painel e selecione a aba **Connection Pooler** (ou Session / porta 6543) para obter a URL compatível com IPv4!")
+
+                if st.button("🔄 Tentar Reconectar Agora", key="btn_retry_conn"):
+                    st.cache_resource.clear()
+                    st.rerun()
                 st.markdown("""
                 **Como conectar seu PostgreSQL gratuito (Supabase ou Neon):**
                 1. Crie seu projeto no [supabase.com](https://supabase.com) ou [neon.tech](https://neon.tech);

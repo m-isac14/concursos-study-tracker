@@ -67,33 +67,43 @@ def get_database_url() -> str | None:
     return None
 
 @st.cache_resource(show_spinner=False)
+def _build_engine(db_url: str) -> Engine:
+    """Cria e mantém o Engine do SQLAlchemy em cache indexado pela URL de conexão."""
+    # Normaliza prefixo para o driver psycopg2 instalado
+    if db_url.startswith("postgres://"):
+        norm_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
+        norm_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    else:
+        norm_url = db_url
+    
+    # Garante suporte a SSL para Supabase / Neon
+    engine = create_engine(
+        norm_url,
+        pool_size=5,
+        max_overflow=10,
+        pool_recycle=1800,
+        pool_pre_ping=True,
+        connect_args={"sslmode": "require"} if "localhost" not in norm_url and "127.0.0.1" not in norm_url else {}
+    )
+    # Testa a conectividade
+    with engine.connect() as conn:
+        conn.execute(text("SELECT 1;"))
+    return engine
+
 def get_engine() -> Engine | None:
-    """Cria e mantém o Engine do SQLAlchemy em cache para reutilizar o pool de conexões."""
+    """Recupera o engine do banco, registrando mensagens de erro em caso de falha."""
     db_url = get_database_url()
     if not db_url:
         return None
     try:
-        # Normaliza prefixo para o driver psycopg2 instalado
-        if db_url.startswith("postgres://"):
-            db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
-        elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
-            db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
-        
-        # Garante suporte a SSL para Supabase / Neon
-        engine = create_engine(
-            db_url,
-            pool_size=5,
-            max_overflow=10,
-            pool_recycle=1800,
-            pool_pre_ping=True,
-            connect_args={"sslmode": "require"} if "localhost" not in db_url and "127.0.0.1" not in db_url else {}
-        )
-        # Testa a conectividade
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1;"))
-        return engine
+        return _build_engine(db_url)
     except Exception as e:
         logger.error(f"Erro ao conectar ao PostgreSQL: {e}")
+        try:
+            st.session_state["db_last_error"] = str(e)
+        except Exception:
+            pass
         return None
 
 def is_db_connected() -> bool:
