@@ -13,6 +13,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 SESSIONS_FILE = os.path.join(DATA_DIR, "sessions.json")
 CERTAMES_FILE = os.path.join(DATA_DIR, "certames.json")
 STUDY_TYPES_FILE = os.path.join(DATA_DIR, "study_types.json")
+COMPLETED_BLOCKS_FILE = os.path.join(DATA_DIR, "completed_blocks.json")
 
 def ensure_data_dir():
     if not os.path.exists(DATA_DIR):
@@ -67,33 +68,43 @@ def get_database_url() -> str | None:
     return None
 
 @st.cache_resource(show_spinner=False)
+def _build_engine(db_url: str) -> Engine:
+    """Cria e mantém o Engine do SQLAlchemy em cache indexado pela URL de conexão."""
+    # Normaliza prefixo para o driver psycopg2 instalado
+    if db_url.startswith("postgres://"):
+        norm_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
+        norm_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    else:
+        norm_url = db_url
+    
+    # Garante suporte a SSL para Supabase / Neon
+    engine = create_engine(
+        norm_url,
+        pool_size=5,
+        max_overflow=10,
+        pool_recycle=1800,
+        pool_pre_ping=True,
+        connect_args={"sslmode": "require"} if "localhost" not in norm_url and "127.0.0.1" not in norm_url else {}
+    )
+    # Testa a conectividade
+    with engine.connect() as conn:
+        conn.execute(text("SELECT 1;"))
+    return engine
+
 def get_engine() -> Engine | None:
-    """Cria e mantém o Engine do SQLAlchemy em cache para reutilizar o pool de conexões."""
+    """Recupera o engine do banco, registrando mensagens de erro em caso de falha."""
     db_url = get_database_url()
     if not db_url:
         return None
     try:
-        # Normaliza prefixo para o driver psycopg2 instalado
-        if db_url.startswith("postgres://"):
-            db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
-        elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
-            db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
-        
-        # Garante suporte a SSL para Supabase / Neon
-        engine = create_engine(
-            db_url,
-            pool_size=5,
-            max_overflow=10,
-            pool_recycle=1800,
-            pool_pre_ping=True,
-            connect_args={"sslmode": "require"} if "localhost" not in db_url and "127.0.0.1" not in db_url else {}
-        )
-        # Testa a conectividade
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1;"))
-        return engine
+        return _build_engine(db_url)
     except Exception as e:
         logger.error(f"Erro ao conectar ao PostgreSQL: {e}")
+        try:
+            st.session_state["db_last_error"] = str(e)
+        except Exception:
+            pass
         return None
 
 def is_db_connected() -> bool:
@@ -151,11 +162,22 @@ def init_db(default_certames=None, default_study_types=None):
     CREATE INDEX IF NOT EXISTS idx_sessions_date ON study_sessions(date);
     """
 
+    ddl_completed_blocks = """
+    CREATE TABLE IF NOT EXISTS completed_blocks (
+        date DATE NOT NULL,
+        block_key VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        PRIMARY KEY (date, block_key)
+    );
+    CREATE INDEX IF NOT EXISTS idx_completed_blocks_date ON completed_blocks(date);
+    """
+
     try:
         with engine.begin() as conn:
             conn.execute(text(ddl_certames))
             conn.execute(text(ddl_study_types))
             conn.execute(text(ddl_sessions))
+            conn.execute(text(ddl_completed_blocks))
 
             # Se a tabela de certames estiver vazia, popula com os padrões
             res_c = conn.execute(text("SELECT COUNT(*) FROM certames;")).scalar()
@@ -490,3 +512,79 @@ def db_delete_study_type(type_name):
         with open(STUDY_TYPES_FILE, "w", encoding="utf-8") as f:
             json.dump(types_list, f, ensure_ascii=False, indent=2)
     return True, "Modalidade removida localmente."
+
+# ==============================================================================
+# CRUD: BLOCOS CONCLUÍDOS DO CRONOGRAMA
+# ==============================================================================
+
+def db_load_completed_blocks(target_date: str) -> set:
+    """Carrega as chaves dos blocos concluídos para uma determinada data (YYYY-MM-DD)."""
+    engine = get_engine()
+    if engine:
+        try:
+            with engine.connect() as conn:
+                res = conn.execute(
+                    text("SELECT block_key FROM completed_blocks WHERE date = :date;"),
+                    {"date": target_date}
+                )
+                return {row[0] for row in res.fetchall()}
+        except Exception as e:
+            logger.warning(f"Erro ao carregar completed_blocks do PostgreSQL: {e}")
+
+    # Fallback local JSON
+    ensure_data_dir()
+    if os.path.exists(COMPLETED_BLOCKS_FILE):
+        try:
+            with open(COMPLETED_BLOCKS_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return set(data.get(target_date, []))
+        except Exception:
+            pass
+    return set()
+
+def db_set_completed_block(target_date: str, block_key: str, completed: bool):
+    """Marca ou desmarca um bloco concluído no banco/arquivo local para a data."""
+    engine = get_engine()
+    if engine:
+        try:
+            with engine.begin() as conn:
+                if completed:
+                    conn.execute(
+                        text("""
+                            INSERT INTO completed_blocks (date, block_key)
+                            VALUES (:date, :block_key)
+                            ON CONFLICT (date, block_key) DO NOTHING;
+                        """),
+                        {"date": target_date, "block_key": block_key}
+                    )
+                else:
+                    conn.execute(
+                        text("DELETE FROM completed_blocks WHERE date = :date AND block_key = :block_key;"),
+                        {"date": target_date, "block_key": block_key}
+                    )
+            return True
+        except Exception as e:
+            logger.error(f"Erro ao atualizar completed_block no PostgreSQL: {e}")
+
+    # Fallback local JSON
+    ensure_data_dir()
+    data = {}
+    if os.path.exists(COMPLETED_BLOCKS_FILE):
+        try:
+            with open(COMPLETED_BLOCKS_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = {}
+    current_set = set(data.get(target_date, []))
+    if completed:
+        current_set.add(block_key)
+    else:
+        current_set.discard(block_key)
+    data[target_date] = list(current_set)
+    try:
+        with open(COMPLETED_BLOCKS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.error(f"Erro ao salvar completed_blocks local: {e}")
+    return True
+
