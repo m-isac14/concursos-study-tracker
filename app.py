@@ -22,7 +22,9 @@ from database import (
     db_delete_session,
     db_load_study_types,
     db_add_study_type,
-    db_delete_study_type
+    db_delete_study_type,
+    db_load_completed_blocks,
+    db_set_completed_block
 )
 
 # ==========================================
@@ -735,8 +737,10 @@ if "sessions" not in st.session_state:
     st.session_state.sessions = load_sessions()
 if "study_types" not in st.session_state:
     st.session_state.study_types = load_study_types()
-if "completed_blocks_today" not in st.session_state:
-    st.session_state.completed_blocks_today = set()
+hoje_str_init = date.today().isoformat()
+if "completed_blocks_date" not in st.session_state or st.session_state.completed_blocks_date != hoje_str_init:
+    st.session_state.completed_blocks_date = hoje_str_init
+    st.session_state.completed_blocks_today = db_load_completed_blocks(hoje_str_init)
 
 if "initial_gh_pull_done" not in st.session_state:
     st.session_state.initial_gh_pull_done = True
@@ -1743,16 +1747,20 @@ with tab_plano:
                         chk_c1, chk_c2 = st.columns(2)
                         with chk_c1:
                             c1_val = st.checkbox("Concluir Bloco 1", value=b1_checked, key=f"chk_plan_{idx_item}_b1")
-                            if c1_val:
-                                st.session_state.completed_blocks_today.add(f"{idx_item}_b1")
-                            else:
-                                st.session_state.completed_blocks_today.discard(f"{idx_item}_b1")
+                            if c1_val != (f"{idx_item}_b1" in st.session_state.completed_blocks_today):
+                                if c1_val:
+                                    st.session_state.completed_blocks_today.add(f"{idx_item}_b1")
+                                else:
+                                    st.session_state.completed_blocks_today.discard(f"{idx_item}_b1")
+                                db_set_completed_block(str(hoje), f"{idx_item}_b1", c1_val)
                         with chk_c2:
                             c2_val = st.checkbox("Concluir Bloco 2", value=b2_checked, key=f"chk_plan_{idx_item}_b2")
-                            if c2_val:
-                                st.session_state.completed_blocks_today.add(f"{idx_item}_b2")
-                            else:
-                                st.session_state.completed_blocks_today.discard(f"{idx_item}_b2")
+                            if c2_val != (f"{idx_item}_b2" in st.session_state.completed_blocks_today):
+                                if c2_val:
+                                    st.session_state.completed_blocks_today.add(f"{idx_item}_b2")
+                                else:
+                                    st.session_state.completed_blocks_today.discard(f"{idx_item}_b2")
+                                db_set_completed_block(str(hoje), f"{idx_item}_b2", c2_val)
 
                         if c1_val and c2_val:
                             st.markdown('<div style="background:#ECFDF5;border:1px solid #A7F3D0;color:#059669;padding:0.4rem 0.7rem;border-radius:8px;font-size:0.78rem;font-weight:600;text-align:center;">🎉 Excelente! Os dois blocos de hoje foram concluídos com consistência!</div>', unsafe_allow_html=True)
