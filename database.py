@@ -14,6 +14,7 @@ SESSIONS_FILE = os.path.join(DATA_DIR, "sessions.json")
 CERTAMES_FILE = os.path.join(DATA_DIR, "certames.json")
 STUDY_TYPES_FILE = os.path.join(DATA_DIR, "study_types.json")
 COMPLETED_BLOCKS_FILE = os.path.join(DATA_DIR, "completed_blocks.json")
+ACTIVE_TIMER_FILE = os.path.join(DATA_DIR, "active_timer.json")
 
 def ensure_data_dir():
     if not os.path.exists(DATA_DIR):
@@ -172,12 +173,24 @@ def init_db(default_certames=None, default_study_types=None):
     CREATE INDEX IF NOT EXISTS idx_completed_blocks_date ON completed_blocks(date);
     """
 
+    ddl_active_timer = """
+    CREATE TABLE IF NOT EXISTS active_timer (
+        id VARCHAR(50) PRIMARY KEY,
+        is_running BOOLEAN NOT NULL DEFAULT FALSE,
+        start_timestamp DOUBLE PRECISION,
+        elapsed_seconds INTEGER NOT NULL DEFAULT 0,
+        last_heartbeat DOUBLE PRECISION,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+    """
+
     try:
         with engine.begin() as conn:
             conn.execute(text(ddl_certames))
             conn.execute(text(ddl_study_types))
             conn.execute(text(ddl_sessions))
             conn.execute(text(ddl_completed_blocks))
+            conn.execute(text(ddl_active_timer))
 
             # Se a tabela de certames estiver vazia, popula com os padrões
             res_c = conn.execute(text("SELECT COUNT(*) FROM certames;")).scalar()
@@ -587,4 +600,81 @@ def db_set_completed_block(target_date: str, block_key: str, completed: bool):
     except Exception as e:
         logger.error(f"Erro ao salvar completed_blocks local: {e}")
     return True
+
+# ==============================================================================
+# CRUD: ESTADO DO CRONÔMETRO ATIVO (ANTI-PERDA DE TEMPO)
+# ==============================================================================
+
+def db_load_active_timer() -> dict:
+    """Recupera o estado persistido do cronômetro."""
+    engine = get_engine()
+    if engine:
+        try:
+            with engine.connect() as conn:
+                res = conn.execute(
+                    text("SELECT is_running, start_timestamp, elapsed_seconds, last_heartbeat FROM active_timer WHERE id = 'main';")
+                ).fetchone()
+                if res:
+                    return {
+                        "is_running": bool(res[0]),
+                        "start_timestamp": float(res[1]) if res[1] is not None else None,
+                        "elapsed_seconds": int(res[2] or 0),
+                        "last_heartbeat": float(res[3]) if res[3] is not None else None,
+                    }
+        except Exception as e:
+            logger.warning(f"Erro ao ler active_timer do PostgreSQL: {e}")
+
+    # Fallback local
+    ensure_data_dir()
+    if os.path.exists(ACTIVE_TIMER_FILE):
+        try:
+            with open(ACTIVE_TIMER_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"is_running": False, "start_timestamp": None, "elapsed_seconds": 0, "last_heartbeat": None}
+
+def db_save_active_timer(is_running: bool, start_timestamp: float | None, elapsed_seconds: int, last_heartbeat: float | None):
+    """Persiste o estado do cronômetro no banco/local."""
+    engine = get_engine()
+    if engine:
+        try:
+            with engine.begin() as conn:
+                conn.execute(
+                    text("""
+                        INSERT INTO active_timer (id, is_running, start_timestamp, elapsed_seconds, last_heartbeat, updated_at)
+                        VALUES ('main', :is_running, :start_timestamp, :elapsed_seconds, :last_heartbeat, NOW())
+                        ON CONFLICT (id) DO UPDATE SET
+                            is_running = EXCLUDED.is_running,
+                            start_timestamp = EXCLUDED.start_timestamp,
+                            elapsed_seconds = EXCLUDED.elapsed_seconds,
+                            last_heartbeat = EXCLUDED.last_heartbeat,
+                            updated_at = NOW();
+                    """),
+                    {
+                        "is_running": is_running,
+                        "start_timestamp": start_timestamp,
+                        "elapsed_seconds": int(elapsed_seconds),
+                        "last_heartbeat": last_heartbeat
+                    }
+                )
+            return True
+        except Exception as e:
+            logger.error(f"Erro ao salvar active_timer no PostgreSQL: {e}")
+
+    # Fallback local
+    ensure_data_dir()
+    data = {
+        "is_running": is_running,
+        "start_timestamp": start_timestamp,
+        "elapsed_seconds": int(elapsed_seconds),
+        "last_heartbeat": last_heartbeat
+    }
+    try:
+        with open(ACTIVE_TIMER_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.error(f"Erro ao salvar active_timer local: {e}")
+    return True
+
 

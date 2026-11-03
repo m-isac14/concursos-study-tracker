@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from datetime import datetime, date, timedelta
 import json
 import os
+import time
 
 from github_sync import (
     get_github_config,
@@ -24,7 +25,9 @@ from database import (
     db_add_study_type,
     db_delete_study_type,
     db_load_completed_blocks,
-    db_set_completed_block
+    db_set_completed_block,
+    db_load_active_timer,
+    db_save_active_timer
 )
 
 # ==========================================
@@ -749,7 +752,35 @@ if "initial_gh_pull_done" not in st.session_state:
         if gh_cfg_init["token"] and not st.session_state.sessions:
             pull_from_github_and_merge()
 
-# Estado do cronômetro
+# Estado do cronômetro persistente (anti-perda por suspensão/fechamento)
+if "timer_initialized" not in st.session_state:
+    st.session_state.timer_initialized = True
+    db_timer = db_load_active_timer()
+    now_ts = time.time()
+    
+    if db_timer.get("is_running") and db_timer.get("last_heartbeat"):
+        lh = db_timer["last_heartbeat"]
+        st_ts = db_timer.get("start_timestamp") or lh
+        gap = now_ts - lh
+        if gap <= 90.0:
+            # Reconexão rápida ou reload da aba: continua rolando sem perder nenhum segundo!
+            st.session_state.timer_running = True
+            st.session_state.timer_start = datetime.fromtimestamp(st_ts)
+            st.session_state.elapsed_seconds = int(now_ts - st_ts)
+            db_save_active_timer(True, st_ts, st.session_state.elapsed_seconds, now_ts)
+        else:
+            # O navegador foi fechado ou ficou inativo por muito tempo:
+            # Preserva com total precisão o tempo acumulado até o último batimento cardíaco antes de fechar!
+            st.session_state.timer_running = False
+            recovered_secs = max(0, int(lh - st_ts))
+            st.session_state.elapsed_seconds = recovered_secs
+            st.session_state.timer_start = None
+            db_save_active_timer(False, None, recovered_secs, None)
+    else:
+        st.session_state.timer_running = False
+        st.session_state.timer_start = None
+        st.session_state.elapsed_seconds = int(db_timer.get("elapsed_seconds") or 0)
+
 if "timer_running" not in st.session_state:
     st.session_state.timer_running = False
 if "timer_start" not in st.session_state:
@@ -778,12 +809,18 @@ def sync_timer_to_form_inputs(total_seconds):
 
 def action_start_timer():
     st.session_state.timer_running = True
-    st.session_state.timer_start = datetime.now() - timedelta(seconds=st.session_state.elapsed_seconds)
+    start_dt = datetime.now() - timedelta(seconds=st.session_state.elapsed_seconds)
+    st.session_state.timer_start = start_dt
+    now_ts = time.time()
+    st_ts = start_dt.timestamp()
+    db_save_active_timer(True, st_ts, st.session_state.elapsed_seconds, now_ts)
 
 def action_pause_timer():
     if st.session_state.timer_running and st.session_state.timer_start:
         st.session_state.elapsed_seconds = int((datetime.now() - st.session_state.timer_start).total_seconds())
     st.session_state.timer_running = False
+    st.session_state.timer_start = None
+    db_save_active_timer(False, None, st.session_state.elapsed_seconds, None)
     sync_timer_to_form_inputs(st.session_state.elapsed_seconds)
 
 def action_reset_timer():
@@ -792,6 +829,7 @@ def action_reset_timer():
     st.session_state.timer_start = None
     st.session_state["reg_dur_horas"] = 1
     st.session_state["reg_dur_minutos"] = 0
+    db_save_active_timer(False, None, 0, None)
 
 # ==========================================
 # 5. FUNÇÕES GRÁFICAS MINIMALISTAS (PLOTLY)
@@ -1843,6 +1881,16 @@ with tab_reg:
     def render_immersive_timer():
         elapsed_now = get_current_elapsed_seconds()
         is_run = st.session_state.timer_running
+        
+        # Heartbeat a cada ~5 segundos durante a execução para salvar progresso contínuo
+        if is_run and st.session_state.timer_start:
+            now_ts = time.time()
+            last_hb = st.session_state.get("_timer_last_hb_ts", 0)
+            if now_ts - last_hb >= 5.0:
+                st.session_state["_timer_last_hb_ts"] = now_ts
+                st_ts = st.session_state.timer_start.timestamp()
+                db_save_active_timer(True, st_ts, elapsed_now, now_ts)
+
         status_pill = (
             '<span class="pill pill-emerald">● Cronômetro em andamento</span>'
             if is_run
@@ -2083,6 +2131,7 @@ with tab_reg:
                         st.session_state.timer_running = False
                         st.session_state.elapsed_seconds = 0
                         st.session_state.timer_start = None
+                        db_save_active_timer(False, None, 0, None)
 
                     msg_cofre = ""
                     if sync_cofre and cofre_conectado:
