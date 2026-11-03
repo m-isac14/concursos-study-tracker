@@ -3,6 +3,23 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, date, timedelta
+try:
+    import zoneinfo
+    TZ_LOCAL = zoneinfo.ZoneInfo("America/Sao_Paulo")
+except Exception:
+    TZ_LOCAL = None
+
+def get_current_date() -> date:
+    """Retorna a data atual respeitando o fuso horário de Brasília (America/Sao_Paulo)."""
+    if TZ_LOCAL:
+        return datetime.now(TZ_LOCAL).date()
+    return date.today()
+
+def get_current_datetime() -> datetime:
+    """Retorna o datetime atual respeitando o fuso horário de Brasília."""
+    if TZ_LOCAL:
+        return datetime.now(TZ_LOCAL)
+    return datetime.now()
 import json
 import os
 import time
@@ -740,7 +757,7 @@ if "sessions" not in st.session_state:
     st.session_state.sessions = load_sessions()
 if "study_types" not in st.session_state:
     st.session_state.study_types = load_study_types()
-hoje_str_init = date.today().isoformat()
+hoje_str_init = get_current_date().isoformat()
 if "completed_blocks_date" not in st.session_state or st.session_state.completed_blocks_date != hoje_str_init:
     st.session_state.completed_blocks_date = hoje_str_init
     st.session_state.completed_blocks_today = db_load_completed_blocks(hoje_str_init)
@@ -1208,7 +1225,7 @@ if filtro_certame_id is not None and not df_all.empty:
 else:
     df = df_all.copy()
 
-hoje = pd.to_datetime(date.today())
+hoje = pd.to_datetime(get_current_date())
 inicio_semana = hoje - timedelta(days=hoje.weekday())
 inicio_mes = hoje.replace(day=1)
 
@@ -1227,7 +1244,7 @@ def calcular_streak(df_ref):
         return 0, 0
     datas_unicas = sorted(set(df_ref["date"].dt.date), reverse=True)
     total_dias_ativos = len(datas_unicas)
-    hoje_d = date.today()
+    hoje_d = get_current_date()
     ontem_d = hoje_d - timedelta(days=1)
 
     if datas_unicas[0] < ontem_d:
@@ -1300,7 +1317,7 @@ if certame_ativo_obj:
 if target_certame_for_countdown and target_certame_for_countdown.get("exam_date"):
     try:
         dt_p = datetime.strptime(target_certame_for_countdown["exam_date"], "%Y-%m-%d").date()
-        dias_ate_prova = (dt_p - date.today()).days
+        dias_ate_prova = (dt_p - get_current_date()).days
         data_prova_fmt = dt_p.strftime("%d/%m/%Y")
     except Exception:
         pass
@@ -1497,7 +1514,7 @@ with tab_dash:
     st.write("")
 
     # 2. Bloco "Foco de Hoje" + Termômetro 70/30 (Donut + Barra Segmentada)
-    dia_idx_hoje = date.today().weekday()
+    dia_idx_hoje = get_current_date().weekday()
     item_hoje = PLANO_SEMANAL_DPDF[dia_idx_hoje]
 
     col_foco, col_term = st.columns([1.35, 1.0])
@@ -1733,7 +1750,7 @@ with tab_plano:
     """, unsafe_allow_html=True)
 
     # 2. Cartões Limpos por Dia em Grid (2 colunas para Segunda a Sábado, card inteiro para Domingo)
-    dia_atual_idx = date.today().weekday()
+    dia_atual_idx = get_current_date().weekday()
 
     for row_start in range(0, 6, 2):
         cols_dias = st.columns(2)
@@ -2027,7 +2044,7 @@ with tab_reg:
             )
 
         with col_dt:
-            data_sessao = st.date_input("📅 Data:", value=date.today(), key="reg_data_sessao")
+            data_sessao = st.date_input("📅 Data:", value=get_current_date(), key="reg_data_sessao")
 
         st.divider()
 
@@ -2108,7 +2125,7 @@ with tab_reg:
                 try:
                     acc = round((q_corretas / q_total * 100), 1) if q_total > 0 else 0.0
                     nova_sessao = {
-                        "id": datetime.now().strftime("%Y%m%d%H%M%S"),
+                        "id": get_current_datetime().strftime("%Y%m%d%H%M%S"),
                         "certame_id": certame_escolhido_id,
                         "certame_name": opcoes_certames_form[certame_escolhido_id],
                         "date": str(data_sessao),
@@ -2273,10 +2290,10 @@ with tab_hist:
         col_ex1, col_ex2, col_ex3 = st.columns([1, 1, 1.4])
         with col_ex1:
             csv_data = df_all.to_csv(index=False).encode("utf-8")
-            st.download_button("📥 Exportar CSV", data=csv_data, file_name=f"estudos_geral_{date.today()}.csv", mime="text/csv", use_container_width=True)
+            st.download_button("📥 Exportar CSV", data=csv_data, file_name=f"estudos_geral_{get_current_date()}.csv", mime="text/csv", use_container_width=True)
         with col_ex2:
             json_data = json.dumps(st.session_state.sessions, ensure_ascii=False, indent=2).encode("utf-8")
-            st.download_button("📥 Backup JSON", data=json_data, file_name=f"backup_estudos_{date.today()}.json", mime="application/json", use_container_width=True)
+            st.download_button("📥 Backup JSON", data=json_data, file_name=f"backup_estudos_{get_current_date()}.json", mime="application/json", use_container_width=True)
         with col_ex3:
             with st.expander("🗑️ Excluir uma sessão lançada por engano"):
                 opcoes_del_sess = {
@@ -2380,7 +2397,7 @@ with tab_certames:
                 novo_cargo = st.text_input("Cargo / Especialidade (ex: 'Auditor Federal de Controle Externo'):")
             with c_nc2:
                 nova_banca = st.text_input("Banca Examinadora (ex: 'Cebraspe', 'FGV', 'FCC'):")
-                nova_data = st.date_input("Data Prevista da Prova:", value=date.today() + timedelta(days=90))
+                nova_data = st.date_input("Data Prevista da Prova:", value=get_current_date() + timedelta(days=90))
                 novo_status = st.selectbox("Status:", ["Foco Total 🔥", "Planejado ⏳", "Stand-by ⏳", "Concluído / Histórico 📁"])
 
             materias_raw = st.text_area(
