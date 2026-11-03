@@ -79,14 +79,20 @@ def _build_engine(db_url: str) -> Engine:
     else:
         norm_url = db_url
     
-    # Garante suporte a SSL para Supabase / Neon
+    # Garante suporte a SSL e timeout estrito para evitar travamento de boot no Streamlit Cloud
+    connect_args = {
+        "connect_timeout": 8
+    }
+    if "localhost" not in norm_url and "127.0.0.1" not in norm_url:
+        connect_args["sslmode"] = "require"
+
     engine = create_engine(
         norm_url,
         pool_size=5,
         max_overflow=10,
         pool_recycle=1800,
         pool_pre_ping=True,
-        connect_args={"sslmode": "require"} if "localhost" not in norm_url and "127.0.0.1" not in norm_url else {}
+        connect_args=connect_args
     )
     # Testa a conectividade
     with engine.connect() as conn:
