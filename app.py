@@ -810,6 +810,28 @@ def get_current_elapsed_seconds():
         return max(0, int((datetime.now() - st.session_state.timer_start).total_seconds()))
     return max(0, int(st.session_state.elapsed_seconds))
 
+def format_hours_mins(hours_float: float, short: bool = False) -> str:
+    """Converte horas decimais para formato amigável (ex: '2 horas e 12 minutos' ou '2h 12min')."""
+    if hours_float is None or hours_float <= 0:
+        return "0min" if short else "0 minutos"
+    total_minutes = int(round(float(hours_float) * 60))
+    h = total_minutes // 60
+    m = total_minutes % 60
+    if short:
+        if h > 0 and m > 0:
+            return f"{h}h {m:02d}min"
+        elif h > 0:
+            return f"{h}h"
+        return f"{m}min"
+    else:
+        if h > 0 and m > 0:
+            h_str = "1 hora" if h == 1 else f"{h} horas"
+            m_str = "1 minuto" if m == 1 else f"{m} minutos"
+            return f"{h_str} e {m_str}"
+        elif h > 0:
+            return "1 hora" if h == 1 else f"{h} horas"
+        return "1 minuto" if m == 1 else f"{m} minutos"
+
 def format_hms(total_seconds):
     hrs = total_seconds // 3600
     mins = (total_seconds % 3600) // 60
@@ -894,7 +916,8 @@ def create_donut_7030(horas_esp, horas_bas, label_center="Específicas"):
             direction="clockwise",
             marker=dict(colors=["#4F46E5", "#10B981"], line=dict(color="#FFFFFF", width=2)),
             textinfo="none",
-            hovertemplate="<b>%{label}</b>: %{value:.1f}h estudadas (%{percent})<extra></extra>"
+            customdata=[format_hours_mins(horas_esp, short=True), format_hours_mins(horas_bas, short=True)],
+            hovertemplate="<b>%{label}</b>: %{customdata} estudadas (%{percent})<extra></extra>"
         ))
         center_main = f"{pct_esp:.0f}%"
         center_sub = label_center
@@ -965,8 +988,8 @@ def create_spline_evolution(df_source, hoje_dt, meta_dia):
             color=["#059669" if h >= meta_dia else "#4F46E5" for h in merged["hours"]],
             line=dict(width=2, color="#FFFFFF")
         ),
-        customdata=list(zip(merged["dia_fmt"], merged["hover_extra"])),
-        hovertemplate="<b>Dia %{customdata[0]}</b>: %{y:.1f}h estudadas%{customdata[1]}<extra></extra>"
+        customdata=list(zip(merged["dia_fmt"], [format_hours_mins(h, short=True) for h in merged["hours"]], merged["hover_extra"])),
+        hovertemplate="<b>Dia %{customdata[0]}</b>: %{customdata[1]} estudadas%{customdata[2]}<extra></extra>"
     ))
 
     max_y = max(merged["hours"].max() if not merged.empty else 0, meta_dia) * 1.25
@@ -1027,10 +1050,10 @@ def create_subject_bars(df_source):
     for _, r in ag.iterrows():
         if r["q_tot"] > 0:
             acc = (r["q_cor"] / r["q_tot"]) * 100.0
-            labels_bar.append(f" {r['hours']:.1f}h • {acc:.0f}%")
+            labels_bar.append(f" {format_hours_mins(r['hours'], short=True)} • {acc:.0f}%")
             hover_acc.append(f" • {acc:.0f}% de acerto")
         else:
-            labels_bar.append(f" {r['hours']:.1f}h")
+            labels_bar.append(f" {format_hours_mins(r['hours'], short=True)}")
             hover_acc.append("")
 
     max_x = ag["hours"].max() if not ag.empty else 1.0
@@ -1044,8 +1067,8 @@ def create_subject_bars(df_source):
         textposition="outside",
         textfont=dict(size=11, color="#334155", family="Inter, sans-serif"),
         cliponaxis=False,
-        customdata=hover_acc,
-        hovertemplate="<b>%{y}</b>: %{x:.1f}h estudadas%{customdata}<extra></extra>"
+        customdata=list(zip([format_hours_mins(h, short=True) for h in ag["hours"]], hover_acc)),
+        hovertemplate="<b>%{y}</b>: %{customdata[0]} estudadas%{customdata[1]}<extra></extra>"
     ))
     fig = apply_clean_layout(fig, height=max(240, len(ag) * 32 + 40), margin=dict(t=10, b=10, l=10, r=75))
     fig.update_xaxes(visible=False, range=[0, max_x * 1.28])
@@ -1091,7 +1114,7 @@ def create_modality_bars(df_source):
     ).reset_index().sort_values(by="hours", ascending=True)
 
     tot_h = ag["hours"].sum() if not ag.empty else 1.0
-    labels = [f" {h:.1f}h ({(h/tot_h*100):.0f}%)" for h in ag["hours"]]
+    labels = [f" {format_hours_mins(h, short=True)} ({(h/tot_h*100):.0f}%)" for h in ag["hours"]]
     hover_extra = [
         f" • {(c/t*100):.0f}% de acerto" if t > 0 else ""
         for t, c in zip(ag["q_tot"], ag["q_cor"])
@@ -1107,8 +1130,8 @@ def create_modality_bars(df_source):
         textposition="outside",
         textfont=dict(size=11, color="#334155"),
         cliponaxis=False,
-        customdata=hover_extra,
-        hovertemplate="<b>%{y}</b>: %{x:.1f}h estudadas%{customdata}<extra></extra>"
+        customdata=list(zip([format_hours_mins(h, short=True) for h in ag["hours"]], hover_extra)),
+        hovertemplate="<b>%{y}</b>: %{customdata[0]} estudadas%{customdata[1]}<extra></extra>"
     ))
     fig = apply_clean_layout(fig, height=max(240, len(ag) * 34 + 40), margin=dict(t=10, b=10, l=10, r=80))
     fig.update_xaxes(visible=False, range=[0, max_x * 1.28])
@@ -1405,12 +1428,12 @@ with tab_dash:
                     <span class="kpi-label">🗓️ Horas na Semana</span>
                     <span class="pill pill-indigo">{prog_sem_pct:.0f}% da meta</span>
                 </div>
-                <div class="kpi-value">{horas_semana:.1f}h <span style="font-size:0.95rem;font-weight:500;color:#64748B;">/ {meta_sem:.0f}h</span></div>
+                <div class="kpi-value">{format_hours_mins(horas_semana)} <span style="font-size:0.95rem;font-weight:500;color:#64748B;">/ {format_hours_mins(meta_sem)}</span></div>
             </div>
             <div>
                 <div class="kpi-sub">
-                    <span>Hoje: <b>{horas_hoje:.1f}h</b> (Meta {meta_dia:.0f}h)</span>
-                    <span>Mês: {horas_mes:.1f}h</span>
+                    <span>Hoje: <b>{format_hours_mins(horas_hoje, short=True)}</b> (Meta {format_hours_mins(meta_dia, short=True)})</span>
+                    <span>Mês: {format_hours_mins(horas_mes, short=True)}</span>
                 </div>
                 <div class="kpi-bar-bg">
                     <div class="kpi-bar-fill" style="width:{prog_sem_pct:.1f}%;background:#4F46E5;"></div>
@@ -1434,7 +1457,7 @@ with tab_dash:
             <div>
                 <div class="kpi-sub">
                     <span>Dias ativos: <b>{total_dias_estudados}d</b></span>
-                    <span>Acumulado: <b>{horas_total:.1f}h</b></span>
+                    <span>Acumulado: <b>{format_hours_mins(horas_total, short=True)}</b></span>
                 </div>
                 <div class="kpi-bar-bg">
                     <div class="kpi-bar-fill" style="width:{min(streak_atual * 14.2, 100):.1f}%;background:#10B981;"></div>
@@ -1497,12 +1520,12 @@ with tab_dash:
                         <span class="kpi-label">⏳ Ritmo Diário</span>
                         <span class="pill pill-indigo">{prog_dia_pct:.0f}% hoje</span>
                     </div>
-                    <div class="kpi-value">{horas_hoje:.1f}h <span style="font-size:0.95rem;font-weight:500;color:#64748B;">/ {meta_dia:.0f}h hoje</span></div>
+                    <div class="kpi-value">{format_hours_mins(horas_hoje)} <span style="font-size:0.95rem;font-weight:500;color:#64748B;">/ {format_hours_mins(meta_dia)} hoje</span></div>
                 </div>
                 <div>
                     <div class="kpi-sub">
-                        <span>Meta diária: <b>{meta_dia:.1f}h</b></span>
-                        <span>Meta semanal: <b>{meta_sem:.0f}h</b></span>
+                        <span>Meta diária: <b>{format_hours_mins(meta_dia, short=True)}</b></span>
+                        <span>Meta semanal: <b>{format_hours_mins(meta_sem, short=True)}</b></span>
                     </div>
                     <div class="kpi-bar-bg">
                         <div class="kpi-bar-fill" style="width:{prog_dia_pct:.1f}%;background:#6366F1;"></div>
@@ -1585,11 +1608,11 @@ with tab_dash:
                 <div style="padding-top:0.35rem;">
                     <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:0.2rem;">
                         <span style="color:#4F46E5;font-weight:600;">● Específicas ({pct_esp_sem:.0f}%)</span>
-                        <span style="color:#0F172A;font-weight:600;">{horas_esp_sem:.1f}h <span style="color:#64748B;font-weight:400;">/ 7.0h</span></span>
+                        <span style="color:#0F172A;font-weight:600;">{format_hours_mins(horas_esp_sem, short=True)} <span style="color:#64748B;font-weight:400;">/ 7h</span></span>
                     </div>
                     <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:0.45rem;">
                         <span style="color:#059669;font-weight:600;">● Básicas ({pct_bas_sem:.0f}%)</span>
-                        <span style="color:#0F172A;font-weight:600;">{horas_bas_sem:.1f}h <span style="color:#64748B;font-weight:400;">/ 3.0h</span></span>
+                        <span style="color:#0F172A;font-weight:600;">{format_hours_mins(horas_bas_sem, short=True)} <span style="color:#64748B;font-weight:400;">/ 3h</span></span>
                     </div>
                     <div class="seg-bar-wrap">
                         <div class="seg-bar-track">
@@ -1696,9 +1719,9 @@ with tab_plano:
             with cp2:
                 st.markdown(f"""
                 <div style="padding-top:0.5rem;font-size:0.85rem;color:#334155;">
-                    <p style="margin-bottom:0.4rem;">🔹 <b>Específicas (Peso 2 + Discursivas):</b> <br><code>{horas_esp_sem:.1f}h</code> realizadas de <code>7.0h</code> ({pct_esp_sem:.1f}%)</p>
-                    <p style="margin-bottom:0.4rem;">🔸 <b>Conhecimentos Básicos (Peso 1):</b> <br><code>{horas_bas_sem:.1f}h</code> realizadas de <code>3.0h</code> ({pct_bas_sem:.1f}%)</p>
-                    <p style="margin-bottom:0;color:#64748B;font-size:0.78rem;">Total na semana: <b>{tot_sem_7030:.1f}h</b> líquidas</p>
+                    <p style="margin-bottom:0.4rem;">🔹 <b>Específicas (Peso 2 + Discursivas):</b> <br><code>{format_hours_mins(horas_esp_sem)}</code> realizadas de <code>7 horas</code> ({pct_esp_sem:.1f}%)</p>
+                    <p style="margin-bottom:0.4rem;">🔸 <b>Conhecimentos Básicos (Peso 1):</b> <br><code>{format_hours_mins(horas_bas_sem)}</code> realizadas de <code>3 horas</code> ({pct_bas_sem:.1f}%)</p>
+                    <p style="margin-bottom:0;color:#64748B;font-size:0.78rem;">Total na semana: <b>{format_hours_mins(tot_sem_7030)}</b> líquidas</p>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -1716,9 +1739,9 @@ with tab_plano:
             with cp4:
                 st.markdown(f"""
                 <div style="padding-top:0.5rem;font-size:0.85rem;color:#334155;">
-                    <p style="margin-bottom:0.4rem;">🔹 <b>Total em Específicas:</b> <br><code>{horas_esp_tot:.1f}h</code> acumuladas ({pct_esp_tot:.1f}%)</p>
-                    <p style="margin-bottom:0.4rem;">🔸 <b>Total em Básicas:</b> <br><code>{horas_bas_tot:.1f}h</code> acumuladas ({pct_bas_tot:.1f}%)</p>
-                    <p style="margin-bottom:0;color:#64748B;font-size:0.78rem;">Total acumulado no filtro: <b>{tot_tot_7030:.1f}h</b></p>
+                    <p style="margin-bottom:0.4rem;">🔹 <b>Total em Específicas:</b> <br><code>{format_hours_mins(horas_esp_tot)}</code> acumuladas ({pct_esp_tot:.1f}%)</p>
+                    <p style="margin-bottom:0.4rem;">🔸 <b>Total em Básicas:</b> <br><code>{format_hours_mins(horas_bas_tot)}</code> acumuladas ({pct_bas_tot:.1f}%)</p>
+                    <p style="margin-bottom:0;color:#64748B;font-size:0.78rem;">Total acumulado no filtro: <b>{format_hours_mins(tot_tot_7030)}</b></p>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -2260,7 +2283,7 @@ with tab_hist:
             with col_info_p:
                 horas_f = df_view["hours"].sum() if not df_view.empty else 0.0
                 q_f = int(df_view["questions_total"].sum()) if not df_view.empty else 0
-                st.caption(f"Exibindo **{min(total_rows, page_size)}** de **{total_rows}** sessões filtradas • Total no filtro: **{horas_f:.1f}h** líquidas e **{q_f}** questões.")
+                st.caption(f"Exibindo **{min(total_rows, page_size)}** de **{total_rows}** sessões filtradas • Total no filtro: **{format_hours_mins(horas_f)}** líquidas e **{q_f}** questões.")
             with col_nav_p:
                 if total_pages > 1:
                     page_num = st.number_input("Página:", min_value=1, max_value=total_pages, value=1, step=1, key="hist_page_num")
@@ -2271,14 +2294,14 @@ with tab_hist:
             df_page = df_view.iloc[start_idx : start_idx + page_size]
 
             st.dataframe(
-                df_page[["date", "certame_name", "subject", "topic", "study_type", "hours", "status_acerto", "notes"]],
+                df_page.assign(duracao_fmt=df_page["hours"].apply(lambda h: format_hours_mins(h, short=True)))[["date", "certame_name", "subject", "topic", "study_type", "duracao_fmt", "status_acerto", "notes"]],
                 column_config={
                     "date": st.column_config.DateColumn("Data", format="DD/MM/YYYY"),
                     "certame_name": "Certame",
                     "subject": "Disciplina",
                     "topic": "Tópico Estudado",
                     "study_type": "Modalidade",
-                    "hours": st.column_config.NumberColumn("Duração", format="%.2f h"),
+                    "duracao_fmt": "Duração",
                     "status_acerto": "Desempenho (Questões)",
                     "notes": "Anotações / Caderno de Erros"
                 },
