@@ -51,7 +51,7 @@ from database import (
 # 1. CONFIGURAÇÃO DA PÁGINA & DESIGN SYSTEM
 # ==========================================
 st.set_page_config(
-    page_title="Central de Estudos | Performance & Concursos — Isac",
+    page_title="Passei Concurso | Performance & Gestão de Estudos — Isac",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -769,11 +769,14 @@ if "initial_gh_pull_done" not in st.session_state:
         if gh_cfg_init["token"] and not st.session_state.sessions:
             pull_from_github_and_merge()
 
-# Estado do cronômetro persistente (anti-perda por suspensão/fechamento)
+# Estado do cronômetro / pomodoro persistente (anti-perda por suspensão/fechamento)
 if "timer_initialized" not in st.session_state:
     st.session_state.timer_initialized = True
     db_timer = db_load_active_timer()
     now_ts = time.time()
+    
+    st.session_state.timer_mode = db_timer.get("mode", "countup")  # 'countup' ou 'countdown'
+    st.session_state.timer_target_seconds = int(db_timer.get("target_seconds") or 1500) # 25 min default
     
     if db_timer.get("is_running") and db_timer.get("last_heartbeat"):
         lh = db_timer["last_heartbeat"]
@@ -787,7 +790,6 @@ if "timer_initialized" not in st.session_state:
             db_save_active_timer(True, st_ts, st.session_state.elapsed_seconds, now_ts)
         else:
             # O navegador foi fechado ou ficou inativo por muito tempo:
-            # Preserva com total precisão o tempo acumulado até o último batimento cardíaco antes de fechar!
             st.session_state.timer_running = False
             recovered_secs = max(0, int(lh - st_ts))
             st.session_state.elapsed_seconds = recovered_secs
@@ -798,6 +800,10 @@ if "timer_initialized" not in st.session_state:
         st.session_state.timer_start = None
         st.session_state.elapsed_seconds = int(db_timer.get("elapsed_seconds") or 0)
 
+if "timer_mode" not in st.session_state:
+    st.session_state.timer_mode = "countup"
+if "timer_target_seconds" not in st.session_state:
+    st.session_state.timer_target_seconds = 1500
 if "timer_running" not in st.session_state:
     st.session_state.timer_running = False
 if "timer_start" not in st.session_state:
@@ -809,6 +815,13 @@ def get_current_elapsed_seconds():
     if st.session_state.timer_running and st.session_state.timer_start:
         return max(0, int((datetime.now() - st.session_state.timer_start).total_seconds()))
     return max(0, int(st.session_state.elapsed_seconds))
+
+def get_countdown_display_seconds():
+    """Retorna os segundos restantes (ou 0 se esgotado) para o modo regressivo."""
+    elapsed = get_current_elapsed_seconds()
+    target = st.session_state.get("timer_target_seconds", 1500)
+    remaining = target - elapsed
+    return max(0, remaining)
 
 def format_hours_mins(hours_float: float, short: bool = False) -> str:
     """Converte horas decimais para formato amigável (ex: '2 horas e 12 minutos' ou '2h 12min')."""
@@ -860,7 +873,12 @@ def action_pause_timer():
     st.session_state.timer_running = False
     st.session_state.timer_start = None
     db_save_active_timer(False, None, st.session_state.elapsed_seconds, None)
-    sync_timer_to_form_inputs(st.session_state.elapsed_seconds)
+    # Se estivesse em contagem regressiva e atingiu/ultrapassou o alvo, preenche o tempo alvo
+    effective_seconds = st.session_state.elapsed_seconds
+    if st.session_state.get("timer_mode") == "countdown":
+        target = st.session_state.get("timer_target_seconds", 1500)
+        effective_seconds = min(st.session_state.elapsed_seconds, target)
+    sync_timer_to_form_inputs(effective_seconds)
 
 def action_reset_timer():
     st.session_state.timer_running = False
@@ -869,6 +887,7 @@ def action_reset_timer():
     st.session_state["reg_dur_horas"] = 1
     st.session_state["reg_dur_minutos"] = 0
     db_save_active_timer(False, None, 0, None)
+
 
 # ==========================================
 # 5. FUNÇÕES GRÁFICAS MINIMALISTAS (PLOTLY)
@@ -1145,8 +1164,7 @@ with st.sidebar:
     <div style="display:flex;align-items:center;gap:0.65rem;margin-bottom:0.4rem;">
         <div style="background:#4F46E5;color:#FFFFFF;width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;font-weight:700;box-shadow:0 2px 4px rgba(79,70,229,0.25);">🎯</div>
         <div>
-            <div style="font-weight:700;font-size:1.02rem;color:#0F172A;line-height:1.15;">Central de Estudos</div>
-            <div style="font-size:0.75rem;color:#64748B;">Second Brain • Isac</div>
+            <div style="font-weight:700;font-size:1.05rem;color:#0F172A;line-height:1.2;">Passei Concurso</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1179,24 +1197,44 @@ with st.sidebar:
 
     st.divider()
 
-    # Mini Cronômetro Sincronizado na Sidebar
-    st.markdown("<div style='font-size:0.8rem;font-weight:600;color:#334155;text-transform:uppercase;letter-spacing:0.04em;'>⏱️ Cronômetro Rápido</div>", unsafe_allow_html=True)
-    cur_elapsed_sb = get_current_elapsed_seconds()
-    st.markdown(f"<div class='sidebar-timer-digits'>{format_hms(cur_elapsed_sb)}</div>", unsafe_allow_html=True)
-
-    col_sb_t1, col_sb_t2 = st.columns(2)
-    if not st.session_state.timer_running:
-        if col_sb_t1.button("▶️ Iniciar", key="sb_start", use_container_width=True):
-            action_start_timer()
-            st.rerun()
-    else:
-        if col_sb_t1.button("⏸️ Pausar", key="sb_pause", use_container_width=True):
+    # Mini Cronômetro / Pomodoro Sincronizado na Sidebar
+    @st.fragment(run_every=1.0 if st.session_state.timer_running else None)
+    def render_sidebar_timer_fragment():
+        is_countdown = (st.session_state.get("timer_mode") == "countdown")
+        elapsed_now = get_current_elapsed_seconds()
+        is_run = st.session_state.timer_running
+        target_secs = st.session_state.get("timer_target_seconds", 1500)
+        
+        # Se for contagem regressiva e atingiu o tempo
+        if is_countdown and is_run and elapsed_now >= target_secs:
             action_pause_timer()
             st.rerun()
 
-    if col_sb_t2.button("🔄 Zerar", key="sb_reset", use_container_width=True):
-        action_reset_timer()
-        st.rerun()
+        disp_seconds = get_countdown_display_seconds() if is_countdown else elapsed_now
+        mode_icon = "🍅 Pomodoro" if is_countdown else "⏱️ Cronômetro"
+        
+        st.markdown(
+            f"<div style='font-size:0.8rem;font-weight:600;color:#334155;text-transform:uppercase;letter-spacing:0.04em;'>{mode_icon} Rápido</div>",
+            unsafe_allow_html=True
+        )
+        digits_cls = "sidebar-timer-digits running" if is_run else "sidebar-timer-digits"
+        st.markdown(f"<div class='{digits_cls}'>{format_hms(disp_seconds)}</div>", unsafe_allow_html=True)
+
+        col_sb_t1, col_sb_t2 = st.columns(2)
+        if not is_run:
+            if col_sb_t1.button("▶️ Iniciar", key="sb_start_btn", use_container_width=True):
+                action_start_timer()
+                st.rerun()
+        else:
+            if col_sb_t1.button("⏸️ Pausar", key="sb_pause_btn", use_container_width=True):
+                action_pause_timer()
+                st.rerun()
+
+        if col_sb_t2.button("🔄 Zerar", key="sb_reset_btn", use_container_width=True):
+            action_reset_timer()
+            st.rerun()
+
+    render_sidebar_timer_fragment()
 
     st.divider()
 
@@ -1916,11 +1954,20 @@ with tab_reg:
             "(veja o passo a passo na aba **⚙️ Certames & Sincronização**) ou execute o app localmente no seu computador via `iniciar_estudos.bat`."
         )
 
-    # 1. Cronômetro Visualmente Centralizado e Imersivo (com atualização em tempo real via st.fragment)
+    # 1. Cronômetro / Pomodoro Visualmente Centralizado e Imersivo
     @st.fragment(run_every=1.0 if st.session_state.timer_running else None)
     def render_immersive_timer():
+        is_countdown = (st.session_state.get("timer_mode") == "countdown")
         elapsed_now = get_current_elapsed_seconds()
         is_run = st.session_state.timer_running
+        target_secs = st.session_state.get("timer_target_seconds", 1500)
+        
+        # Auto-conclusão do Pomodoro se o tempo esgotou
+        pomodoro_finished = False
+        if is_countdown and is_run and elapsed_now >= target_secs:
+            action_pause_timer()
+            pomodoro_finished = True
+            st.rerun()
         
         # Heartbeat a cada ~5 segundos durante a execução para salvar progresso contínuo
         if is_run and st.session_state.timer_start:
@@ -1931,37 +1978,109 @@ with tab_reg:
                 st_ts = st.session_state.timer_start.timestamp()
                 db_save_active_timer(True, st_ts, elapsed_now, now_ts)
 
-        status_pill = (
-            '<span class="pill pill-emerald">● Cronômetro em andamento</span>'
-            if is_run
-            else ('<span class="pill pill-amber">⏸️ Pausado — Tempo transferido ao formulário</span>' if elapsed_now > 0 else '<span class="pill pill-slate">⏱️ Pronto para iniciar sessão</span>')
-        )
-        digits_cls = "timer-digits running" if is_run else "timer-digits"
+        # Seletor de Modo & Presets
+        col_m1, col_m2 = st.columns([1.5, 3])
+        with col_m1:
+            modo_opcao = st.radio(
+                "Modo de Marcação:",
+                options=["⏱️ Cronômetro Progressivo", "🍅 Pomodoro / Regressivo"],
+                index=1 if is_countdown else 0,
+                horizontal=True,
+                key="timer_mode_radio"
+            )
+            novo_modo = "countdown" if "Pomodoro" in modo_opcao else "countup"
+            if novo_modo != st.session_state.get("timer_mode"):
+                st.session_state.timer_mode = novo_modo
+                action_reset_timer()
+                st.rerun()
+
+        with col_m2:
+            if novo_modo == "countdown":
+                sub_p1, sub_p2 = st.columns([2, 1.2])
+                with sub_p1:
+                    preset = st.radio(
+                        "Tempo Foco:",
+                        options=["25 min (Clássico)", "50 min (Longo)", "90 min (Avançado)", "Customizado"],
+                        index=0 if target_secs == 1500 else (1 if target_secs == 3000 else (2 if target_secs == 5400 else 3)),
+                        horizontal=True,
+                        key="pomodoro_preset_radio"
+                    )
+                    preset_map = {
+                        "25 min (Clássico)": 1500,
+                        "50 min (Longo)": 3000,
+                        "90 min (Avançado)": 5400
+                    }
+                    if preset in preset_map:
+                        novo_target = preset_map[preset]
+                        if novo_target != target_secs:
+                            st.session_state.timer_target_seconds = novo_target
+                            action_reset_timer()
+                            st.rerun()
+                with sub_p2:
+                    if preset == "Customizado":
+                        custom_m = st.number_input("Minutos:", min_value=1, max_value=360, value=max(1, target_secs // 60), step=5, key="pomo_custom_min")
+                        if custom_m * 60 != target_secs:
+                            st.session_state.timer_target_seconds = int(custom_m * 60)
+                            action_reset_timer()
+                            st.rerun()
+            else:
+                st.markdown("<div style='font-size:0.8rem;color:#64748B;padding-top:1.6rem;'>Conta o tempo livre de estudo progressivamente e transfere para a sessão ao pausar.</div>", unsafe_allow_html=True)
+
+        # Display do tempo
+        if is_countdown:
+            disp_seconds = get_countdown_display_seconds()
+            pct_progresso = min(1.0, max(0.0, elapsed_now / target_secs)) if target_secs > 0 else 0.0
+            if is_run:
+                status_pill = f'<span class="pill pill-emerald">● Pomodoro em andamento ({int(pct_progresso * 100)}%)</span>'
+            elif elapsed_now >= target_secs:
+                status_pill = '<span class="pill pill-emerald">🎉 Pomodoro Concluído! Tempo aplicado ao formulário</span>'
+            elif elapsed_now > 0:
+                status_pill = '<span class="pill pill-amber">⏸️ Pomodoro Pausado</span>'
+            else:
+                status_pill = f'<span class="pill pill-indigo">🍅 Pomodoro de {target_secs // 60} minutos pronto</span>'
+            digits_cls = "timer-digits running" if is_run else "timer-digits"
+            sub_info = f"Tempo restante do bloco de {target_secs // 60} minutos. Ao terminar, preenche a duração da sessão."
+        else:
+            disp_seconds = elapsed_now
+            status_pill = (
+                '<span class="pill pill-emerald">● Cronômetro em andamento</span>'
+                if is_run
+                else ('<span class="pill pill-amber">⏸️ Pausado — Tempo transferido ao formulário</span>' if elapsed_now > 0 else '<span class="pill pill-slate">⏱️ Pronto para iniciar sessão</span>')
+            )
+            digits_cls = "timer-digits running" if is_run else "timer-digits"
+            sub_info = "Ao pausar, os minutos cronometrados preenchem automaticamente a duração da sessão abaixo."
 
         st.markdown(f"""
         <div class="timer-container">
             <div>{status_pill}</div>
-            <div class="{digits_cls}">{format_hms(elapsed_now)}</div>
-            <div style="font-size:0.78rem;color:#64748B;">Ao pausar, os minutos cronometrados preenchem automaticamente a duração da sessão abaixo.</div>
+            <div class="{digits_cls}">{format_hms(disp_seconds)}</div>
+            <div style="font-size:0.78rem;color:#64748B;">{sub_info}</div>
         </div>
         """, unsafe_allow_html=True)
+
+        if is_countdown:
+            st.progress(pct_progresso)
 
         _, ct1, ct2, ct3, _ = st.columns([1.4, 1.1, 1.1, 1.1, 1.4])
         with ct1:
             if not is_run:
-                if st.button("▶️ Iniciar / Retomar", key="main_timer_start", type="primary", use_container_width=True):
+                btn_label = "▶️ Iniciar Bloco" if is_countdown else "▶️ Iniciar / Retomar"
+                if st.button(btn_label, key="main_timer_start", type="primary", use_container_width=True):
                     action_start_timer()
                     st.rerun()
             else:
-                if st.button("⏸️ Pausar & Aplicar", key="main_timer_pause", type="primary", use_container_width=True):
+                btn_label = "⏸️ Pausar Bloco" if is_countdown else "⏸️ Pausar & Aplicar"
+                if st.button(btn_label, key="main_timer_pause", type="primary", use_container_width=True):
                     action_pause_timer()
                     st.rerun()
         with ct2:
+            effective_time = min(elapsed_now, target_secs) if is_countdown else elapsed_now
             if st.button("📥 Usar Tempo Agora", key="main_timer_apply", use_container_width=True, disabled=(elapsed_now == 0)):
-                sync_timer_to_form_inputs(elapsed_now)
+                sync_timer_to_form_inputs(effective_time)
                 st.rerun()
         with ct3:
-            if st.button("🔄 Zerar Cronômetro", key="main_timer_reset", use_container_width=True):
+            reset_lbl = "🔄 Reiniciar Bloco" if is_countdown else "🔄 Zerar Cronômetro"
+            if st.button(reset_lbl, key="main_timer_reset", use_container_width=True):
                 action_reset_timer()
                 st.rerun()
 
