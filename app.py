@@ -2699,7 +2699,7 @@ def modal_editar_sessao(sessao_id: str):
         with col_qcor:
             edit_qcor = st.number_input("✅ Acertos:", min_value=0, max_value=500, value=int(sess.get("questions_correct", 0)), step=1)
 
-        edit_notas = st.text_area("📝 Caderno de Erros & Observações:", value=sess.get("notes", ""), rows=3)
+        edit_notas = st.text_area("📝 Caderno de Erros & Observações:", value=sess.get("notes", ""), height=100)
 
         col_btn1, col_btn2, col_btn3 = st.columns([1.2, 1.0, 1.0])
         with col_btn1:
