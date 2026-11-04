@@ -416,6 +416,11 @@ st.markdown("""
         margin: 0.35rem 0 0.55rem 0;
         letter-spacing: 0.04em;
     }
+    .sidebar-timer-digits.running {
+        color: #4F46E5;
+        border-color: #C7D2FE;
+        background: #F8FAFC;
+    }
 
     /* Botões refinados */
     .stButton > button {
@@ -1204,33 +1209,79 @@ with st.sidebar:
         elapsed_now = get_current_elapsed_seconds()
         is_run = st.session_state.timer_running
         target_secs = st.session_state.get("timer_target_seconds", 1500)
-        
+
         # Se for contagem regressiva e atingiu o tempo
         if is_countdown and is_run and elapsed_now >= target_secs:
             action_pause_timer()
             st.rerun()
 
         disp_seconds = get_countdown_display_seconds() if is_countdown else elapsed_now
-        mode_icon = "🍅 Pomodoro" if is_countdown else "⏱️ Cronômetro"
-        
-        st.markdown(
-            f"<div style='font-size:0.8rem;font-weight:600;color:#334155;text-transform:uppercase;letter-spacing:0.04em;'>{mode_icon} Rápido</div>",
-            unsafe_allow_html=True
+
+        # Alternador Minimalista de Modo na Sidebar (Pill-segment)
+        modo_sb = st.radio(
+            "Modo de Marcação",
+            options=["⏱️ Cronômetro", "🍅 Pomodoro"],
+            index=1 if is_countdown else 0,
+            horizontal=True,
+            label_visibility="collapsed",
+            key="sb_timer_mode_radio"
         )
+        novo_modo_sb = "countdown" if "Pomodoro" in modo_sb else "countup"
+        if novo_modo_sb != st.session_state.get("timer_mode"):
+            st.session_state.timer_mode = novo_modo_sb
+            action_reset_timer()
+            st.rerun()
+
+        # Se estiver no modo Pomodoro, permite selecionar rapidamente o bloco
+        if novo_modo_sb == "countdown":
+            opcoes_pomo_sb = ["25 min", "50 min", "90 min"]
+            pomo_map = {"25 min": 1500, "50 min": 3000, "90 min": 5400}
+            idx_pomo_sb = 0
+            if target_secs == 3000:
+                idx_pomo_sb = 1
+            elif target_secs == 5400:
+                idx_pomo_sb = 2
+            elif target_secs not in pomo_map.values():
+                opcoes_pomo_sb.append(f"{target_secs // 60} min")
+                idx_pomo_sb = len(opcoes_pomo_sb) - 1
+
+            col_sel, _ = st.columns([1, 0.01])
+            with col_sel:
+                pomo_choice = st.selectbox(
+                    "Tempo do Bloco:",
+                    options=opcoes_pomo_sb,
+                    index=idx_pomo_sb,
+                    label_visibility="collapsed",
+                    key="sb_pomo_preset_choice"
+                )
+                if pomo_choice in pomo_map:
+                    novo_target_sb = pomo_map[pomo_choice]
+                    if novo_target_sb != target_secs:
+                        st.session_state.timer_target_seconds = novo_target_sb
+                        action_reset_timer()
+                        st.rerun()
+
         digits_cls = "sidebar-timer-digits running" if is_run else "sidebar-timer-digits"
         st.markdown(f"<div class='{digits_cls}'>{format_hms(disp_seconds)}</div>", unsafe_allow_html=True)
 
+        if is_countdown and target_secs > 0:
+            pct_progresso = min(1.0, max(0.0, elapsed_now / target_secs))
+            st.progress(pct_progresso)
+
         col_sb_t1, col_sb_t2 = st.columns(2)
         if not is_run:
-            if col_sb_t1.button("▶️ Iniciar", key="sb_start_btn", use_container_width=True):
+            btn_lbl = "▶️ Bloco" if is_countdown else "▶️ Iniciar"
+            if col_sb_t1.button(btn_lbl, key="sb_start_btn", use_container_width=True):
                 action_start_timer()
                 st.rerun()
         else:
-            if col_sb_t1.button("⏸️ Pausar", key="sb_pause_btn", use_container_width=True):
+            btn_lbl = "⏸️ Pausar"
+            if col_sb_t1.button(btn_lbl, key="sb_pause_btn", use_container_width=True):
                 action_pause_timer()
                 st.rerun()
 
-        if col_sb_t2.button("🔄 Zerar", key="sb_reset_btn", use_container_width=True):
+        btn_rst = "🔄 Reiniciar" if is_countdown else "🔄 Zerar"
+        if col_sb_t2.button(btn_rst, key="sb_reset_btn", use_container_width=True):
             action_reset_timer()
             st.rerun()
 
