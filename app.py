@@ -2868,12 +2868,11 @@ with tab_hist:
     # ------------------------------------------
     if modo_exibicao == "📅 Calendário":
         # Dias da semana
-        dias_semana_labels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+        dias_semana_labels = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
         html_weekdays = "".join([f'<div class="cal-weekday">{d}</div>' for d in dias_semana_labels])
-        st.markdown(f'<div class="cal-grid" style="margin-bottom:0;">{html_weekdays}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="cal-grid" style="margin-bottom:0.4rem;">{html_weekdays}</div>', unsafe_allow_html=True)
 
-        # Montagem das semanas do mês
-        cal_obj = calendar.Calendar(firstweekday=0) # 0 = Segunda-feira
+        cal_obj = calendar.Calendar(firstweekday=0)
         month_days = list(cal_obj.itermonthdates(cur_ano, cur_mes))
 
         # Renderização semana a semana
@@ -2902,7 +2901,6 @@ with tab_hist:
 
                     html_chips = ""
                     for s in sess_do_dia:
-                        s_id = str(s.get("id"))
                         s_mat = s.get("subject", "Geral")
                         s_top = s.get("topic") or "Sem tópico"
                         s_min = s.get("duration_min", 0)
@@ -2913,7 +2911,6 @@ with tab_hist:
                         s_notes = s.get("notes") or "Sem observações"
                         s_cert = s.get("certame_name", "Geral")
 
-                        # Cor da borda
                         chip_cls = "cal-event-chip"
                         if "Básica" in s.get("block", "") or "Básic" in s_type:
                             chip_cls += " basica"
@@ -2924,55 +2921,41 @@ with tab_hist:
 
                         tag_acc = f"🟢 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 80 else (f"🟡 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 65 else f"🔴 {s_acc:.0f}% ({s_qc}/{s_qt})") if s_qt > 0 else "⚪ Teoria"
 
-                        tooltip_html = f"""
-                        <div class="cal-tooltip">
-                            <div style="font-weight:700;font-size:0.86rem;color:#0F172A;border-bottom:1px solid #E2E8F0;padding-bottom:5px;margin-bottom:6px;">
-                                📖 {s_mat}
-                            </div>
-                            <div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Tópico:</b> {s_top}</div>
-                            <div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Certame:</b> {s_cert}</div>
-                            <div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Duração:</b> {s_min} min ({format_hours_mins(s_min/60.0, short=True)})</div>
-                            <div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Desempenho:</b> {tag_acc}</div>
-                            <div style="font-size:0.75rem;color:#475569;margin-bottom:6px;"><b>Modalidade:</b> {s_type}</div>
-                            <div style="font-size:0.72rem;color:#64748B;background:#F8FAFC;padding:5px 7px;border-radius:6px;border:1px dashed #CBD5E1;">
-                                <b>Notas:</b> {s_notes[:85] + ("..." if len(s_notes) > 85 else "")}
-                            </div>
-                            <div style="margin-top:7px;font-size:0.7rem;font-weight:600;color:#4F46E5;text-align:center;">
-                                ✏️ Clique no botão da sessão para editar
-                            </div>
-                        </div>
-                        """
+                        tooltip_html = (
+                            '<div class="cal-tooltip">'
+                            f'<div style="font-weight:700;font-size:0.86rem;color:#0F172A;border-bottom:1px solid #E2E8F0;padding-bottom:5px;margin-bottom:6px;">📖 {s_mat}</div>'
+                            f'<div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Tópico:</b> {s_top}</div>'
+                            f'<div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Certame:</b> {s_cert}</div>'
+                            f'<div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Duração:</b> {s_min} min ({format_hours_mins(s_min/60.0, short=True)})</div>'
+                            f'<div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Desempenho:</b> {tag_acc}</div>'
+                            f'<div style="font-size:0.75rem;color:#475569;margin-bottom:6px;"><b>Modalidade:</b> {s_type}</div>'
+                            f'<div style="font-size:0.72rem;color:#64748B;background:#F8FAFC;padding:5px 7px;border-radius:6px;border:1px dashed #CBD5E1;"><b>Notas:</b> {s_notes[:85]}</div>'
+                            '<div style="margin-top:7px;font-size:0.7rem;font-weight:600;color:#4F46E5;text-align:center;">✏️ Clique no botão abaixo para editar</div>'
+                            '</div>'
+                        )
 
-                        html_chips += f"""
-                        <div class="{chip_cls}">
-                            <span class="cal-chip-title" title="{s_mat}: {s_top}">{s_mat}</span>
-                            <div class="cal-chip-meta">
-                                <span>⏱️ {s_min}m</span>
-                                <span>{tag_acc.split(' ')[0]} {s_acc:.0f}%</span>
-                            </div>
-                            {tooltip_html}
-                        </div>
-                        """
+                        html_chips += (
+                            f'<div class="{chip_cls}">'
+                            f'<span class="cal-chip-title" title="{s_mat}: {s_top}">{s_mat}</span>'
+                            f'<div class="cal-chip-meta"><span>⏱️ {s_min}m</span><span>{tag_acc.split(" ")[0]} {s_acc:.0f}%</span></div>'
+                            f'{tooltip_html}'
+                            '</div>'
+                        )
 
-                    # Renderiza o card do dia
-                    st.markdown(f"""
-                    <div class="{card_cls}">
-                        <div class="cal-day-header">
-                            <span class="cal-day-number {num_cls}">{d_date.day}</span>
-                            {badge_total}
-                        </div>
-                        <div class="cal-events-container">
-                            {html_chips}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    day_card_html = (
+                        f'<div class="{card_cls}">'
+                        f'<div class="cal-day-header"><span class="cal-day-number {num_cls}">{d_date.day}</span>{badge_total}</div>'
+                        f'<div class="cal-events-container">{html_chips}</div>'
+                        '</div>'
+                    )
 
-                    # Botões de clique direto para editar as sessões do dia
+                    st.markdown(day_card_html, unsafe_allow_html=True)
+
                     if sess_do_dia:
                         for s_item in sess_do_dia:
                             s_iid = str(s_item.get("id"))
-                            btn_label = f"✏️ {s_item.get('subject')[:11]}"
-                            if st.button(btn_label, key=f"btn_edit_c_{s_iid}", help=f"Editar sessão de {s_item.get('subject')}", use_container_width=True):
+                            btn_label = f"✏️ {s_item.get('subject')[:10]}"
+                            if st.button(btn_label, key=f"btn_edit_c_{s_iid}_{d_str}", help=f"Editar sessão de {s_item.get('subject')}", use_container_width=True):
                                 st.session_state.modal_edit_sess_id = s_iid
                                 st.rerun()
 
