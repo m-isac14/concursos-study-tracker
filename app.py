@@ -602,13 +602,19 @@ st.markdown("""
         background: #F8FAFC;
         border: 1px solid #E2E8F0;
         border-left: 3.5px solid #4F46E5;
-        border-radius: 7px;
-        padding: 4px 7px;
+        border-radius: 8px;
+        padding: 5px 8px;
         font-size: 0.74rem;
         cursor: pointer;
         transition: all 0.15s ease;
         display: block;
         text-align: left;
+        text-decoration: none !important;
+        color: inherit !important;
+    }
+    .cal-event-chip:visited, .cal-event-chip:hover, .cal-event-chip:active {
+        text-decoration: none !important;
+        color: inherit !important;
     }
     .cal-event-chip:hover {
         transform: translateY(-1px);
@@ -2753,6 +2759,13 @@ def modal_editar_sessao(sessao_id: str):
 # ABA 4: CALENDÁRIO INTERATIVO & GESTÃO (ESTILO ASSETI)
 # ------------------------------------------
 with tab_hist:
+    # Intercepta clique direto em chip de sessão via query_params
+    if "edit_sess_id" in st.query_params:
+        sess_param_id = st.query_params["edit_sess_id"]
+        del st.query_params["edit_sess_id"]
+        st.session_state.modal_edit_sess_id = sess_param_id
+        st.rerun()
+
     # Se houver uma sessão disparada para edição via modal dialog
     if st.session_state.get("modal_edit_sess_id"):
         modal_editar_sessao(st.session_state.modal_edit_sess_id)
@@ -2901,6 +2914,7 @@ with tab_hist:
 
                     html_chips = ""
                     for s in sess_do_dia:
+                        s_id = str(s.get("id"))
                         s_mat = s.get("subject", "Geral")
                         s_top = s.get("topic") or "Sem tópico"
                         s_min = s.get("duration_min", 0)
@@ -2930,16 +2944,17 @@ with tab_hist:
                             f'<div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Desempenho:</b> {tag_acc}</div>'
                             f'<div style="font-size:0.75rem;color:#475569;margin-bottom:6px;"><b>Modalidade:</b> {s_type}</div>'
                             f'<div style="font-size:0.72rem;color:#64748B;background:#F8FAFC;padding:5px 7px;border-radius:6px;border:1px dashed #CBD5E1;"><b>Notas:</b> {s_notes[:85]}</div>'
-                            '<div style="margin-top:7px;font-size:0.7rem;font-weight:600;color:#4F46E5;text-align:center;">✏️ Clique no botão abaixo para editar</div>'
+                            '<div style="margin-top:7px;font-size:0.7rem;font-weight:600;color:#4F46E5;text-align:center;">✏️ Clique na sessão para editar</div>'
                             '</div>'
                         )
 
+                        # O chip agora é uma tag <a> nativa com link direto e target _self, disparando o modal de edição ao clicar!
                         html_chips += (
-                            f'<div class="{chip_cls}">'
+                            f'<a href="?edit_sess_id={s_id}" target="_self" class="{chip_cls}">'
                             f'<span class="cal-chip-title" title="{s_mat}: {s_top}">{s_mat}</span>'
                             f'<div class="cal-chip-meta"><span>⏱️ {s_min}m</span><span>{tag_acc.split(" ")[0]} {s_acc:.0f}%</span></div>'
                             f'{tooltip_html}'
-                            '</div>'
+                            '</a>'
                         )
 
                     day_card_html = (
@@ -2950,14 +2965,6 @@ with tab_hist:
                     )
 
                     st.markdown(day_card_html, unsafe_allow_html=True)
-
-                    if sess_do_dia:
-                        for s_item in sess_do_dia:
-                            s_iid = str(s_item.get("id"))
-                            btn_label = f"✏️ {s_item.get('subject')[:10]}"
-                            if st.button(btn_label, key=f"btn_edit_c_{s_iid}_{d_str}", help=f"Editar sessão de {s_item.get('subject')}", use_container_width=True):
-                                st.session_state.modal_edit_sess_id = s_iid
-                                st.rerun()
 
     # ------------------------------------------
     # VISUALIZAÇÃO 2: MODO LISTA / TABELA FILTRADA
