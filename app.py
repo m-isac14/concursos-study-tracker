@@ -494,6 +494,188 @@ st.markdown("""
     .stProgress > div > div > div > div {
         background-color: #4F46E5 !important;
     }
+
+    /* ========================================= */
+    /* CALENDÁRIO INTERATIVO ESTILO ASSETI / CRECI-TI */
+    /* ========================================= */
+    .cal-header-bar {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 14px;
+        padding: 10px 18px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+    .cal-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0F172A;
+        letter-spacing: -0.02em;
+    }
+    .cal-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        margin-bottom: 1rem;
+    }
+    .cal-weekday {
+        text-align: center;
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748B;
+        padding: 8px 4px;
+        background: #F8FAFC;
+        border-radius: 8px;
+        border: 1px solid #E2E8F0;
+    }
+    .cal-day-cell {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        min-height: 120px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    .cal-day-cell:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+    .cal-day-cell.other-month {
+        background: #F8FAFC;
+        opacity: 0.45;
+    }
+    .cal-day-cell.today {
+        border: 2px solid #4F46E5 !important;
+        background: #FAF5FF !important;
+    }
+    .cal-day-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+    .cal-day-number {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #334155;
+    }
+    .cal-day-number.today-num {
+        background: #4F46E5;
+        color: #FFFFFF;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+    }
+    .cal-day-total {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #64748B;
+        background: #F1F5F9;
+        padding: 1px 6px;
+        border-radius: 999px;
+    }
+    .cal-events-container {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        flex-grow: 1;
+    }
+    
+    /* Pílula / Chip de cada Sessão de Estudo com Hover Tooltip Flutuante */
+    .cal-event-chip {
+        position: relative;
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-left: 3.5px solid #4F46E5;
+        border-radius: 7px;
+        padding: 4px 7px;
+        font-size: 0.74rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: block;
+        text-align: left;
+    }
+    .cal-event-chip:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);
+        border-color: #CBD5E1;
+    }
+    .cal-event-chip.basica {
+        border-left-color: #10B981;
+    }
+    .cal-event-chip.discursiva {
+        border-left-color: #7C3AED;
+    }
+    .cal-event-chip.revisao {
+        border-left-color: #F59E0B;
+    }
+    .cal-chip-title {
+        font-weight: 600;
+        color: #0F172A;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        line-height: 1.2;
+    }
+    .cal-chip-meta {
+        font-size: 0.68rem;
+        color: #64748B;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2px;
+    }
+
+    /* Modal / Popover Flutuante no Hover (Tippy / Pure CSS Tooltip) */
+    .cal-event-chip .cal-tooltip {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        bottom: 105%;
+        left: 50%;
+        transform: translateX(-50%) translateY(4px);
+        width: 250px;
+        background: #FFFFFF;
+        border: 1px solid #CBD5E1;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.2), 0 4px 10px -2px rgba(15, 23, 42, 0.1);
+        padding: 12px 14px;
+        z-index: 1050;
+        pointer-events: none;
+        transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: left;
+        color: #0F172A;
+    }
+    .cal-event-chip .cal-tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -6px;
+        border-width: 6px;
+        border-style: solid;
+        border-color: #FFFFFF transparent transparent transparent;
+    }
+    .cal-event-chip:hover .cal-tooltip {
+        visibility: visible;
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1544,7 +1726,7 @@ tab_dash, tab_plano, tab_reg, tab_hist, tab_certames = st.tabs([
     "📊 Dashboard & Insights",
     "🗓️ Plano de Estudos (70/30)",
     "⏱️ Registrar Sessão & Cronômetro",
-    "📋 Histórico & Gestão",
+    "📅 Calendário de Estudos",
     "⚙️ Certames & Sincronização"
 ])
 
@@ -2455,126 +2637,425 @@ with tab_reg:
                 st.rerun()
 
 # ------------------------------------------
-# ABA 4: HISTÓRICO & GESTÃO
+
+# ==========================================
+# MODAL DIALOG PARA EDIÇÃO DA SESSÃO DE ESTUDO
+# ==========================================
+@st.dialog("✏️ Editar Sessão de Estudo")
+def modal_editar_sessao(sessao_id: str):
+    sess = next((s for s in st.session_state.sessions if str(s.get("id")) == str(sessao_id)), None)
+    if not sess:
+        st.error("Sessão não encontrada.")
+        if st.button("Fechar"):
+            st.rerun()
+        return
+
+    st.markdown(f"""
+    <div style="font-size:0.85rem;color:#64748B;margin-bottom:1rem;">
+        Edite os detalhes da sessão registrada em <b>{sess.get('date')}</b>. As alterações atualizam automaticamente o banco e o cofre Obsidian.
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.form(key=f"form_edit_sess_{sessao_id}"):
+        col_c, col_d = st.columns([1.4, 1.0])
+        with col_c:
+            certame_nomes = [c["name"] for c in st.session_state.certames]
+            cur_c_nome = sess.get("certame_name", certame_nomes[0] if certame_nomes else "DPDF")
+            idx_c = certame_nomes.index(cur_c_nome) if cur_c_nome in certame_nomes else 0
+            edit_certame_nome = st.selectbox("🎯 Certame:", certame_nomes, index=idx_c)
+        with col_d:
+            try:
+                cur_dt = datetime.strptime(sess.get("date", str(get_current_date())), "%Y-%m-%d").date()
+            except Exception:
+                cur_dt = get_current_date()
+            edit_data = st.date_input("📅 Data da Sessão:", value=cur_dt)
+
+        col_m, col_t, col_type = st.columns([1.1, 1.2, 1.0])
+        with col_m:
+            edit_materia = st.text_input("📖 Disciplina:", value=sess.get("subject", ""))
+        with col_t:
+            edit_topico = st.text_input("📌 Tópico:", value=sess.get("topic", ""))
+        with col_type:
+            tipos = st.session_state.study_types
+            cur_tipo = sess.get("study_type", tipos[0] if tipos else "🎯 Questões / Simulado")
+            idx_t = tipos.index(cur_tipo) if cur_tipo in tipos else 0
+            edit_tipo = st.selectbox("🏷️ Modalidade:", tipos, index=idx_t)
+
+        col_h, col_min, col_qtot, col_qcor = st.columns(4)
+        cur_min_tot = int(sess.get("duration_min", 60))
+        with col_h:
+            edit_h = st.number_input("⏱️ Horas:", min_value=0, max_value=24, value=cur_min_tot // 60, step=1)
+        with col_min:
+            edit_m = st.number_input("⏱️ Minutos:", min_value=0, max_value=59, value=cur_min_tot % 60, step=5)
+        with col_qtot:
+            edit_qtot = st.number_input("🎯 Total Questões:", min_value=0, max_value=500, value=int(sess.get("questions_total", 0)), step=1)
+        with col_qcor:
+            edit_qcor = st.number_input("✅ Acertos:", min_value=0, max_value=500, value=int(sess.get("questions_correct", 0)), step=1)
+
+        edit_notas = st.text_area("📝 Caderno de Erros & Observações:", value=sess.get("notes", ""), rows=3)
+
+        col_btn1, col_btn2, col_btn3 = st.columns([1.2, 1.0, 1.0])
+        with col_btn1:
+            salvar = st.form_submit_button("💾 Salvar Alterações", type="primary", use_container_width=True)
+        with col_btn2:
+            excluir = st.form_submit_button("🗑️ Excluir Sessão", use_container_width=True)
+        with col_btn3:
+            fechar = st.form_submit_button("❌ Cancelar", use_container_width=True)
+
+        if salvar:
+            dur_total = (int(edit_h) * 60) + int(edit_m)
+            if dur_total <= 0:
+                dur_total = 1
+            acc_pct = (edit_qcor / edit_qtot * 100.0) if edit_qtot > 0 else 0.0
+
+            # Localiza certame_id
+            c_obj = next((c for c in st.session_state.certames if c["name"] == edit_certame_nome), None)
+            c_id = c_obj["id"] if c_obj else sess.get("certame_id", "dpdf_2027")
+
+            sess["certame_id"] = c_id
+            sess["certame_name"] = edit_certame_nome
+            sess["date"] = edit_data.strftime("%Y-%m-%d")
+            sess["subject"] = edit_materia
+            sess["topic"] = edit_topico
+            sess["study_type"] = edit_tipo
+            sess["duration_min"] = dur_total
+            sess["questions_total"] = int(edit_qtot)
+            sess["questions_correct"] = int(edit_qcor)
+            sess["accuracy_pct"] = round(acc_pct, 1)
+            sess["notes"] = edit_notas
+
+            save_sessions(st.session_state.sessions)
+            db_insert_session(sess)
+
+            # Sincroniza cofre
+            cofre_p = st.session_state.get("custom_cofre_path", COFRE_DIR_DEFAULT)
+            if os.path.exists(cofre_p):
+                sync_session_to_obsidian_idempotent(sess, cofre_p)
+
+            st.toast("Sessão atualizada com sucesso!", icon="✅")
+            st.session_state.modal_edit_sess_id = None
+            st.rerun()
+
+        if excluir:
+            db_delete_session(sessao_id)
+            st.session_state.sessions = [s for s in st.session_state.sessions if str(s.get("id")) != str(sessao_id)]
+            save_sessions(st.session_state.sessions)
+            st.toast("Sessão removida!", icon="🗑️")
+            st.session_state.modal_edit_sess_id = None
+            st.rerun()
+
+        if fechar:
+            st.session_state.modal_edit_sess_id = None
+            st.rerun()
+
+# ------------------------------------------
+# ABA 4: CALENDÁRIO INTERATIVO & GESTÃO (ESTILO ASSETI)
 # ------------------------------------------
 with tab_hist:
-    if df_all.empty:
-        with st.container(border=True):
-            st.info("💡 Nenhuma sessão registrada até o momento. Utilize a aba **⏱️ Registrar Sessão & Cronômetro** para lançar seu primeiro estudo!")
-    else:
-        with st.container(border=True):
-            st.markdown("""
-            <div class="section-title">
-                <span>🔍 Busca Rápida & Filtros do Histórico</span>
-                <div style="display:flex;gap:0.35rem;flex-wrap:wrap;">
-                    <span class="pill pill-emerald">🟢 ≥ 80% Segurança</span>
-                    <span class="pill pill-amber">🟡 65–79% Atenção</span>
-                    <span class="pill pill-rose">🔴 &lt; 65% Crítico</span>
-                    <span class="pill pill-slate">⚪ Teoria</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+    # Se houver uma sessão disparada para edição via modal dialog
+    if st.session_state.get("modal_edit_sess_id"):
+        modal_editar_sessao(st.session_state.modal_edit_sess_id)
 
-            cf_busca, cf_cert, cf_mat, cf_mod, cf_lim = st.columns([1.4, 1.0, 1.1, 1.0, 0.7])
-            with cf_busca:
-                termo_busca = st.text_input("Buscar por tópico, matéria ou nota:", placeholder="Ex: TCP/IP, LC 840, Docker...", key="hist_search")
-            with cf_cert:
-                filtro_c_hist = st.multiselect("Certame:", options=sorted(df_all["certame_name"].unique()), key="hist_f_cert")
-            with cf_mat:
-                filtro_mat = st.multiselect("Disciplina:", options=sorted(df_all["subject"].unique()), key="hist_f_mat")
-            with cf_mod:
-                tipos_opcoes = sorted([t for t in df_all["study_type"].dropna().unique() if t])
-                filtro_tipo = st.multiselect("Modalidade:", options=tipos_opcoes, key="hist_f_mod")
-            with cf_lim:
-                page_size = st.selectbox("Exibir:", options=[15, 30, 50, 100], index=0, key="hist_page_size")
+    # 1. Barra de Controles e Filtros do Calendário (Estilo ASSETI)
+    hoje_cal = get_current_date()
+    if "cal_mes_ano" not in st.session_state:
+        st.session_state.cal_mes_ano = (hoje_cal.year, hoje_cal.month)
 
-            df_view = df_all.sort_values(by=["date", "id"], ascending=[False, False]).copy()
-            if termo_busca.strip():
-                q_str = termo_busca.strip().lower()
-                mask_txt = (
-                    df_view["subject"].astype(str).str.lower().str.contains(q_str, na=False)
-                    | df_view["topic"].astype(str).str.lower().str.contains(q_str, na=False)
-                    | df_view["notes"].astype(str).str.lower().str.contains(q_str, na=False)
-                )
-                df_view = df_view[mask_txt]
-            if filtro_c_hist:
-                df_view = df_view[df_view["certame_name"].isin(filtro_c_hist)]
-            if filtro_mat:
-                df_view = df_view[df_view["subject"].isin(filtro_mat)]
-            if filtro_tipo:
-                df_view = df_view[df_view["study_type"].isin(filtro_tipo)]
+    cur_ano, cur_mes = st.session_state.cal_mes_ano
 
-            # Formatação visual das taxas de acerto com tags semânticas
-            def format_accuracy_tag(row):
-                qt = int(row.get("questions_total", 0))
-                qc = int(row.get("questions_correct", 0))
-                acc = float(row.get("accuracy_pct", 0.0))
-                if qt <= 0:
-                    return "⚪ Teoria"
-                if acc >= 80.0:
-                    return f"🟢 {acc:.1f}% ({qc}/{qt})"
-                if acc >= 65.0:
-                    return f"🟡 {acc:.1f}% ({qc}/{qt})"
-                return f"🔴 {acc:.1f}% ({qc}/{qt})"
+    # Barra superior com Navegação de Mês, Modo Lista/Calendário e Filtros
+    col_c_nav, col_c_fil, col_c_view = st.columns([1.6, 2.0, 1.2])
 
-            df_view["status_acerto"] = df_view.apply(format_accuracy_tag, axis=1)
-
-            total_rows = len(df_view)
-            total_pages = max(1, (total_rows + page_size - 1) // page_size)
-
-            col_info_p, col_nav_p = st.columns([3, 1])
-            with col_info_p:
-                horas_f = df_view["hours"].sum() if not df_view.empty else 0.0
-                q_f = int(df_view["questions_total"].sum()) if not df_view.empty else 0
-                st.caption(f"Exibindo **{min(total_rows, page_size)}** de **{total_rows}** sessões filtradas • Total no filtro: **{format_hours_mins(horas_f)}** líquidas e **{q_f}** questões.")
-            with col_nav_p:
-                if total_pages > 1:
-                    page_num = st.number_input("Página:", min_value=1, max_value=total_pages, value=1, step=1, key="hist_page_num")
+    with col_c_nav:
+        c_prev, c_hoje, c_next = st.columns([0.8, 1.2, 0.8])
+        with c_prev:
+            if st.button("◀ Mês Ant.", key="cal_btn_prev", use_container_width=True):
+                if cur_mes == 1:
+                    st.session_state.cal_mes_ano = (cur_ano - 1, 12)
                 else:
-                    page_num = 1
+                    st.session_state.cal_mes_ano = (cur_ano, cur_mes - 1)
+                st.rerun()
+        with c_hoje:
+            if st.button("📍 Mês Atual", key="cal_btn_today", use_container_width=True):
+                st.session_state.cal_mes_ano = (hoje_cal.year, hoje_cal.month)
+                st.rerun()
+        with c_next:
+            if st.button("Próx. Mês ▶", key="cal_btn_next", use_container_width=True):
+                if cur_mes == 12:
+                    st.session_state.cal_mes_ano = (cur_ano + 1, 1)
+                else:
+                    st.session_state.cal_mes_ano = (cur_ano, cur_mes + 1)
+                st.rerun()
 
-            start_idx = (page_num - 1) * page_size
-            df_page = df_view.iloc[start_idx : start_idx + page_size]
-
-            st.dataframe(
-                df_page.assign(duracao_fmt=df_page["hours"].apply(lambda h: format_hours_mins(h, short=True)))[["date", "certame_name", "subject", "topic", "study_type", "duracao_fmt", "status_acerto", "notes"]],
-                column_config={
-                    "date": st.column_config.DateColumn("Data", format="DD/MM/YYYY"),
-                    "certame_name": "Certame",
-                    "subject": "Disciplina",
-                    "topic": "Tópico Estudado",
-                    "study_type": "Modalidade",
-                    "duracao_fmt": "Duração",
-                    "status_acerto": "Desempenho (Questões)",
-                    "notes": "Anotações / Caderno de Erros"
-                },
-                use_container_width=True,
-                hide_index=True
+    with col_c_fil:
+        cf_cert_col, cf_disc_col = st.columns(2)
+        with cf_cert_col:
+            filtro_cal_cert = st.selectbox(
+                "Certame:",
+                options=["Todos os Concursos"] + [c["name"] for c in st.session_state.certames],
+                index=0,
+                label_visibility="collapsed",
+                key="cal_filtro_cert"
+            )
+        with cf_disc_col:
+            all_subjects = sorted(list({s.get("subject", "") for s in st.session_state.sessions if s.get("subject")}))
+            filtro_cal_disc = st.selectbox(
+                "Disciplina:",
+                options=["Todas as Disciplinas"] + all_subjects,
+                index=0,
+                label_visibility="collapsed",
+                key="cal_filtro_disc"
             )
 
-        # Exportação e Gestão Pontual
-        col_ex1, col_ex2, col_ex3 = st.columns([1, 1, 1.4])
+    with col_c_view:
+        modo_exibicao = st.radio(
+            "Visualização:",
+            options=["📅 Calendário", "📋 Lista / Tabela"],
+            index=0,
+            horizontal=True,
+            label_visibility="collapsed",
+            key="cal_modo_view"
+        )
+
+    # Filtragem dos registros
+    sessoes_filtradas = st.session_state.sessions.copy()
+    if filtro_cal_cert != "Todos os Concursos":
+        sessoes_filtradas = [s for s in sessoes_filtradas if s.get("certame_name") == filtro_cal_cert]
+    if filtro_cal_disc != "Todas as Disciplinas":
+        sessoes_filtradas = [s for s in sessoes_filtradas if s.get("subject") == filtro_cal_disc]
+
+    # Mapeamento de sessões por data (YYYY-MM-DD)
+    sessoes_por_dia = {}
+    for s in sessoes_filtradas:
+        d_str = str(s.get("date", "")).strip()
+        if d_str:
+            sessoes_por_dia.setdefault(d_str, []).append(s)
+
+    nomes_meses = [
+        "", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ]
+    titulo_mes_ano = f"{nomes_meses[cur_mes]} de {cur_ano}"
+
+    # Totalizador do mês visível
+    dias_no_mes = calendar.monthrange(cur_ano, cur_mes)[1]
+    dt_inicio_mes = f"{cur_ano:04d}-{cur_mes:02d}-01"
+    dt_fim_mes = f"{cur_ano:04d}-{cur_mes:02d}-{dias_no_mes:02d}"
+
+    sess_mes_atual = [s for s in sessoes_filtradas if dt_inicio_mes <= str(s.get("date", "")) <= dt_fim_mes]
+    horas_mes_total = sum(s.get("duration_min", 0) for s in sess_mes_atual) / 60.0
+    questoes_mes_total = sum(s.get("questions_total", 0) for s in sess_mes_atual)
+    acertos_mes_total = sum(s.get("questions_correct", 0) for s in sess_mes_atual)
+    taxa_mes = (acertos_mes_total / questoes_mes_total * 100.0) if questoes_mes_total > 0 else 0.0
+
+    st.markdown(f"""
+    <div class="cal-header-bar">
+        <div style="display:flex;align-items:center;gap:0.65rem;">
+            <div class="cal-title">📅 {titulo_mes_ano}</div>
+            <span class="pill pill-indigo">{len(sess_mes_atual)} sessões</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+            <span class="status-pill-badge">⏱️ Total no Mês: <b>{format_hours_mins(horas_mes_total)}</b></span>
+            <span class="status-pill-badge">🎯 Questões: <b>{questoes_mes_total}</b> ({acertos_mes_total} acertos • <b>{taxa_mes:.1f}%</b>)</span>
+            <span class="pill pill-emerald"><i class="fa-solid fa-mouse-pointer"></i> Passe o mouse para ver detalhes • Clique para editar</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ------------------------------------------
+    # VISUALIZAÇÃO 1: CALENDÁRIO INTERATIVO MENSAL
+    # ------------------------------------------
+    if modo_exibicao == "📅 Calendário":
+        # Dias da semana
+        dias_semana_labels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+        html_weekdays = "".join([f'<div class="cal-weekday">{d}</div>' for d in dias_semana_labels])
+        st.markdown(f'<div class="cal-grid" style="margin-bottom:0;">{html_weekdays}</div>', unsafe_allow_html=True)
+
+        # Montagem das semanas do mês
+        cal_obj = calendar.Calendar(firstweekday=0) # 0 = Segunda-feira
+        month_days = list(cal_obj.itermonthdates(cur_ano, cur_mes))
+
+        # Renderização semana a semana
+        for week_start_idx in range(0, len(month_days), 7):
+            week_days = month_days[week_start_idx : week_start_idx + 7]
+            cols = st.columns(7)
+
+            for col_idx, d_date in enumerate(week_days):
+                d_str = d_date.strftime("%Y-%m-%d")
+                is_other = (d_date.month != cur_mes)
+                is_today = (d_date == hoje_cal)
+
+                sess_do_dia = sessoes_por_dia.get(d_str, [])
+                min_dia = sum(s.get("duration_min", 0) for s in sess_do_dia)
+                h_dia_fmt = format_hours_mins(min_dia / 60.0, short=True) if min_dia > 0 else ""
+
+                with cols[col_idx]:
+                    card_cls = "cal-day-cell"
+                    if is_other:
+                        card_cls += " other-month"
+                    if is_today:
+                        card_cls += " today"
+
+                    num_cls = "today-num" if is_today else ""
+                    badge_total = f'<span class="cal-day-total">{h_dia_fmt}</span>' if h_dia_fmt else ""
+
+                    html_chips = ""
+                    for s in sess_do_dia:
+                        s_id = str(s.get("id"))
+                        s_mat = s.get("subject", "Geral")
+                        s_top = s.get("topic") or "Sem tópico"
+                        s_min = s.get("duration_min", 0)
+                        s_qt = int(s.get("questions_total", 0))
+                        s_qc = int(s.get("questions_correct", 0))
+                        s_acc = float(s.get("accuracy_pct", 0.0))
+                        s_type = s.get("study_type", "Geral")
+                        s_notes = s.get("notes") or "Sem observações"
+                        s_cert = s.get("certame_name", "Geral")
+
+                        # Cor da borda
+                        chip_cls = "cal-event-chip"
+                        if "Básica" in s.get("block", "") or "Básic" in s_type:
+                            chip_cls += " basica"
+                        elif "Discursiva" in s.get("block", "") or "Discursiva" in s_type:
+                            chip_cls += " discursiva"
+                        elif "Revisão" in s_type:
+                            chip_cls += " revisao"
+
+                        tag_acc = f"🟢 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 80 else (f"🟡 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 65 else f"🔴 {s_acc:.0f}% ({s_qc}/{s_qt})") if s_qt > 0 else "⚪ Teoria"
+
+                        tooltip_html = f"""
+                        <div class="cal-tooltip">
+                            <div style="font-weight:700;font-size:0.86rem;color:#0F172A;border-bottom:1px solid #E2E8F0;padding-bottom:5px;margin-bottom:6px;">
+                                📖 {s_mat}
+                            </div>
+                            <div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Tópico:</b> {s_top}</div>
+                            <div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Certame:</b> {s_cert}</div>
+                            <div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Duração:</b> {s_min} min ({format_hours_mins(s_min/60.0, short=True)})</div>
+                            <div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Desempenho:</b> {tag_acc}</div>
+                            <div style="font-size:0.75rem;color:#475569;margin-bottom:6px;"><b>Modalidade:</b> {s_type}</div>
+                            <div style="font-size:0.72rem;color:#64748B;background:#F8FAFC;padding:5px 7px;border-radius:6px;border:1px dashed #CBD5E1;">
+                                <b>Notas:</b> {s_notes[:85] + ("..." if len(s_notes) > 85 else "")}
+                            </div>
+                            <div style="margin-top:7px;font-size:0.7rem;font-weight:600;color:#4F46E5;text-align:center;">
+                                ✏️ Clique no botão da sessão para editar
+                            </div>
+                        </div>
+                        """
+
+                        html_chips += f"""
+                        <div class="{chip_cls}">
+                            <span class="cal-chip-title" title="{s_mat}: {s_top}">{s_mat}</span>
+                            <div class="cal-chip-meta">
+                                <span>⏱️ {s_min}m</span>
+                                <span>{tag_acc.split(' ')[0]} {s_acc:.0f}%</span>
+                            </div>
+                            {tooltip_html}
+                        </div>
+                        """
+
+                    # Renderiza o card do dia
+                    st.markdown(f"""
+                    <div class="{card_cls}">
+                        <div class="cal-day-header">
+                            <span class="cal-day-number {num_cls}">{d_date.day}</span>
+                            {badge_total}
+                        </div>
+                        <div class="cal-events-container">
+                            {html_chips}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    # Botões de clique direto para editar as sessões do dia
+                    if sess_do_dia:
+                        for s_item in sess_do_dia:
+                            s_iid = str(s_item.get("id"))
+                            btn_label = f"✏️ {s_item.get('subject')[:11]}"
+                            if st.button(btn_label, key=f"btn_edit_c_{s_iid}", help=f"Editar sessão de {s_item.get('subject')}", use_container_width=True):
+                                st.session_state.modal_edit_sess_id = s_iid
+                                st.rerun()
+
+    # ------------------------------------------
+    # VISUALIZAÇÃO 2: MODO LISTA / TABELA FILTRADA
+    # ------------------------------------------
+    else:
+        if df_all.empty:
+            st.info("Nenhuma sessão registrada.")
+        else:
+            with st.container(border=True):
+                st.markdown("""
+                <div class="section-title">
+                    <span>🔍 Tabela Completa de Sessões de Estudo</span>
+                    <span class="pill pill-indigo">Visualização Tabular</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+                df_view = df_all.sort_values(by=["date", "id"], ascending=[False, False]).copy()
+                if filtro_cal_cert != "Todos os Concursos":
+                    df_view = df_view[df_view["certame_name"] == filtro_cal_cert]
+                if filtro_cal_disc != "Todas as Disciplinas":
+                    df_view = df_view[df_view["subject"] == filtro_cal_disc]
+
+                def format_accuracy_tag(row):
+                    qt = int(row.get("questions_total", 0))
+                    qc = int(row.get("questions_correct", 0))
+                    acc = float(row.get("accuracy_pct", 0.0))
+                    if qt <= 0:
+                        return "⚪ Teoria"
+                    if acc >= 80.0:
+                        return f"🟢 {acc:.1f}% ({qc}/{qt})"
+                    if acc >= 65.0:
+                        return f"🟡 {acc:.1f}% ({qc}/{qt})"
+                    return f"🔴 {acc:.1f}% ({qc}/{qt})"
+
+                df_view["status_acerto"] = df_view.apply(format_accuracy_tag, axis=1)
+
+                col_t1, col_t2 = st.columns([2.5, 1.5])
+                with col_t1:
+                    st.dataframe(
+                        df_view.assign(duracao_fmt=df_view["hours"].apply(lambda h: format_hours_mins(h, short=True)))[["date", "certame_name", "subject", "topic", "study_type", "duracao_fmt", "status_acerto", "notes"]],
+                        column_config={
+                            "date": st.column_config.DateColumn("Data", format="DD/MM/YYYY"),
+                            "certame_name": "Certame",
+                            "subject": "Disciplina",
+                            "topic": "Tópico Estudado",
+                            "study_type": "Modalidade",
+                            "duracao_fmt": "Duração",
+                            "status_acerto": "Desempenho",
+                            "notes": "Anotações"
+                        },
+                        use_container_width=True,
+                        hide_index=True
+                    )
+                with col_t2:
+                    with st.container(border=True):
+                        st.markdown("<div style='font-size:0.88rem;font-weight:600;color:#0F172A;margin-bottom:0.5rem;'>✏️ Editar ou Excluir Sessão</div>", unsafe_allow_html=True)
+                        opcoes_sel_edit = {
+                            str(s.get("id")): f"{s.get('date')} • {s.get('subject')} ({s.get('duration_min')}m)"
+                            for s in reversed(st.session_state.sessions)
+                        }
+                        if opcoes_sel_edit:
+                            sel_id_edit = st.selectbox("Selecione a sessão:", options=list(opcoes_sel_edit.keys()), format_func=lambda x: opcoes_sel_edit[x], key="tbl_edit_sel")
+                            if st.button("✏️ Abrir Editor", key="btn_open_editor_tbl", type="primary", use_container_width=True):
+                                st.session_state.modal_edit_sess_id = sel_id_edit
+                                st.rerun()
+
+    # 3. Exportação e Backups em Bloco Limpo
+    with st.container(border=True):
+        st.markdown("""
+        <div class="section-title">
+            <span>💾 Exportação & Backups de Dados</span>
+            <span class="pill pill-slate">Segurança & Portabilidade</span>
+        </div>
+        """, unsafe_allow_html=True)
+        col_ex1, col_ex2 = st.columns(2)
         with col_ex1:
             csv_data = df_all.to_csv(index=False).encode("utf-8")
-            st.download_button("📥 Exportar CSV", data=csv_data, file_name=f"estudos_geral_{get_current_date()}.csv", mime="text/csv", use_container_width=True)
+            st.download_button("📥 Exportar Histórico Completo (CSV)", data=csv_data, file_name=f"passei_concurso_{get_current_date()}.csv", mime="text/csv", use_container_width=True)
         with col_ex2:
             json_data = json.dumps(st.session_state.sessions, ensure_ascii=False, indent=2).encode("utf-8")
-            st.download_button("📥 Backup JSON", data=json_data, file_name=f"backup_estudos_{get_current_date()}.json", mime="application/json", use_container_width=True)
-        with col_ex3:
-            with st.expander("🗑️ Excluir uma sessão lançada por engano"):
-                opcoes_del_sess = {
-                    str(s.get("id")): f"{s.get('date')} • {s.get('subject')} ({s.get('duration_min')} min)"
-                    for s in reversed(st.session_state.sessions)
-                }
-                id_del = st.selectbox("Selecione a sessão:", options=list(opcoes_del_sess.keys()), format_func=lambda x: opcoes_del_sess[x], key="del_sess_sel")
-                if st.button("Confirmar Exclusão da Sessão", key="btn_del_sess", use_container_width=True):
-                    db_delete_session(id_del)
-                    st.session_state.sessions = [s for s in st.session_state.sessions if str(s.get("id")) != str(id_del)]
-                    save_sessions(st.session_state.sessions)
-                    st.toast("Sessão removida com sucesso!", icon="🗑️")
-                    st.rerun()
+            st.download_button("📥 Exportar Backup Estruturado (JSON)", data=json_data, file_name=f"backup_passei_concurso_{get_current_date()}.json", mime="application/json", use_container_width=True)
 
-# ------------------------------------------
 # ABA 5: GERENCIAR CERTAMES & SINCRONIZAÇÃO
 # ------------------------------------------
 with tab_certames:
