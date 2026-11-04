@@ -63,161 +63,163 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
     :root {
-        --bg-page: #F8FAFC;
+        --brand-color: #0b3d63;
+        --brand-color-light: #145a8c;
+        --accent-color: #4f46e5;
+        --bg-app: #F3F4F6;
         --bg-card: #FFFFFF;
-        --bg-subtle: #F1F5F9;
-        --text-primary: #0F172A;
-        --text-secondary: #334155;
-        --text-muted: #64748B;
         --border-subtle: #E2E8F0;
-        --accent-indigo: #4F46E5;
-        --accent-indigo-light: #EEF2FF;
-        --accent-indigo-border: #C7D2FE;
-        --accent-emerald: #059669;
-        --accent-emerald-light: #ECFDF5;
-        --accent-emerald-border: #A7F3D0;
-        --accent-amber: #D97706;
-        --accent-amber-light: #FFFBEB;
-        --accent-amber-border: #FDE68A;
-        --accent-rose: #E11D48;
-        --accent-rose-light: #FFF1F2;
-        --accent-rose-border: #FECDD3;
-        --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
-        --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
+        --border-strong: #CBD5E1;
+        --text-dark: #0F172A;
+        --text-slate: #334155;
+        --text-muted: #64748B;
+        --shadow-2xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.02);
+        --shadow-md: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+        --shadow-lg: 0 10px 25px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
     }
 
-    html, body, [class*="css"] {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        color: var(--text-primary);
+    /* Base da página com o mesmo fundo profissional do creci-ti-sistema */
+    html, body, [data-testid="stAppViewContainer"] {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        background-color: var(--bg-app) !important;
+        color: var(--text-slate) !important;
     }
 
-    /* Redução de padding excessivo e respiro equilibrado */
+    /* Container principal limpo e responsivo */
     .block-container {
-        padding-top: 1.4rem !important;
+        padding-top: 1.25rem !important;
         padding-bottom: 2.5rem !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
-        max-width: 1420px;
+        max-width: 1440px;
     }
 
-    /* Sidebar elegante em Cinza Ardósia Claro */
+    /* Sidebar minimalista e acolhedora */
     [data-testid="stSidebar"] {
-        background-color: #F1F5F9 !important;
+        background-color: #F8FAFC !important;
         border-right: 1px solid #E2E8F0 !important;
     }
     [data-testid="stSidebar"] .block-container {
-        padding-top: 1.2rem !important;
+        padding-top: 1.15rem !important;
         padding-left: 1.1rem !important;
         padding-right: 1.1rem !important;
     }
 
-    /* Cartões nativos st.container(border=True) */
-    [data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #FFFFFF !important;
-        border: 1px solid #E2E8F0 !important;
-        border-radius: 12px !important;
-        box-shadow: var(--shadow-sm) !important;
-        padding: 1rem 1.2rem !important;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-    [data-testid="stVerticalBlockBorderWrapper"]:hover {
-        border-color: #CBD5E1 !important;
-    }
-
-    /* Sanfonas (st.expander) limpas */
-    [data-testid="stExpander"] {
-        background-color: #FFFFFF !important;
-        border: 1px solid #E2E8F0 !important;
-        border-radius: 10px !important;
-        box-shadow: var(--shadow-sm) !important;
-        overflow: hidden;
-    }
-    [data-testid="stExpander"] details summary {
-        font-weight: 600 !important;
-        color: #1E293B !important;
-        padding: 0.65rem 1rem !important;
-    }
-
-    /* Header Principal */
-    .app-header {
-        background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+    /* Topbar flutuante estilo pill minimalista (Inspirado no topbar-inner do CRECI-TI) */
+    .topbar-card {
+        background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
-        border-radius: 14px;
-        padding: 1.15rem 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: var(--shadow-sm);
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        padding: 12px 20px;
+        margin-bottom: 1.25rem;
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
+        transition: all 0.25s ease;
     }
-    .header-left {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-    .header-eyebrow {
-        font-size: 0.72rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #4F46E5;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-    }
-    .header-title {
-        font-size: 1.55rem;
-        font-weight: 700;
-        color: #0F172A;
-        letter-spacing: -0.025em;
-        margin: 0;
-        line-height: 1.2;
-    }
-    .header-subtitle {
-        font-size: 0.88rem;
-        color: #64748B;
-        margin: 0;
-    }
-    .header-badges {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        align-items: center;
+    .topbar-card:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
     }
 
-    /* Pills & Badges Semânticos */
+    .topbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .topbar-brand-icon {
+        background: linear-gradient(135deg, #4F46E5 0%, #3730A3 100%);
+        color: #FFFFFF;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        box-shadow: 0 2px 6px rgba(79, 70, 229, 0.28);
+    }
+    .topbar-brand-title {
+        font-size: 1.18rem;
+        font-weight: 700;
+        color: #0F172A;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+    }
+    .topbar-brand-sub {
+        font-size: 0.78rem;
+        color: #64748B;
+        font-weight: 500;
+    }
+
+    /* Indicador vivo pulse (verde estilo creci pulse-indicator) */
+    .pulse-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #10B981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse-green 2s infinite;
+        vertical-align: middle;
+        margin-right: 5px;
+    }
+    @keyframes pulse-green {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Status badge tipo pílula do CRECI */
+    .status-pill-badge {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 50px;
+        padding: 5px 12px;
+        font-size: 0.78rem;
+        color: #475569;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: var(--shadow-2xs);
+    }
+
+    /* Badges semânticos arredondados */
     .pill {
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
-        padding: 0.28rem 0.7rem;
+        padding: 0.28rem 0.65rem;
         border-radius: 9999px;
-        font-size: 0.76rem;
+        font-size: 0.75rem;
         font-weight: 600;
         line-height: 1.2;
         white-space: nowrap;
     }
     .pill-indigo {
-        background-color: #EEF2FF;
+        background-color: rgba(79, 70, 229, 0.08);
         color: #4F46E5;
-        border: 1px solid #C7D2FE;
+        border: 1px solid rgba(199, 210, 254, 0.9);
     }
     .pill-emerald {
-        background-color: #ECFDF5;
+        background-color: rgba(16, 185, 129, 0.1);
         color: #059669;
-        border: 1px solid #A7F3D0;
+        border: 1px solid rgba(167, 243, 208, 0.9);
     }
     .pill-amber {
-        background-color: #FFFBEB;
+        background-color: rgba(245, 158, 11, 0.1);
         color: #D97706;
-        border: 1px solid #FDE68A;
+        border: 1px solid rgba(253, 230, 138, 0.9);
     }
     .pill-rose {
-        background-color: #FFF1F2;
-        color: #E11D48;
-        border: 1px solid #FECDD3;
+        background-color: rgba(239, 68, 68, 0.09);
+        color: #DC2626;
+        border: 1px solid rgba(254, 205, 211, 0.9);
     }
     .pill-slate {
         background-color: #F1F5F9;
@@ -225,52 +227,58 @@ st.markdown("""
         border: 1px solid #CBD5E1;
     }
 
-    /* Abas de Navegação Modernas (Pill-Nav Style) */
+    /* Abas de Navegação (Pills CRECI-TI: nav-pill) */
     .stTabs [data-baseweb="tab-list"] {
-        background-color: #F1F5F9;
-        padding: 5px;
-        border-radius: 11px;
+        background-color: #FFFFFF;
+        padding: 6px;
+        border-radius: 14px;
         gap: 6px;
         border: 1px solid #E2E8F0;
-        margin-bottom: 0.8rem;
+        margin-bottom: 1.15rem;
+        box-shadow: var(--shadow-2xs);
     }
     .stTabs [data-baseweb="tab"] {
         height: 38px;
-        padding: 0 16px;
-        border-radius: 8px;
+        padding: 0 18px;
+        border-radius: 10px;
         font-size: 0.86rem;
         font-weight: 500;
         color: #475569;
         background-color: transparent;
         border: none !important;
-        transition: all 0.15s ease;
+        transition: all 0.2s ease;
     }
     .stTabs [data-baseweb="tab"]:hover {
-        color: #0F172A;
-        background-color: rgba(255, 255, 255, 0.6);
+        color: #4F46E5;
+        background-color: rgba(79, 70, 229, 0.05);
     }
     .stTabs [aria-selected="true"] {
-        background-color: #FFFFFF !important;
+        background-color: rgba(79, 70, 229, 0.1) !important;
         color: #4F46E5 !important;
         font-weight: 600 !important;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04) !important;
     }
     .stTabs [data-baseweb="tab-highlight"],
     .stTabs [data-baseweb="tab-border"] {
         display: none !important;
     }
 
-    /* KPI Cards no Topo */
+    /* Modern KPI Cards (Estilo 100% alinhado ao CRECI-TI) */
     .kpi-card {
-        background: #FFFFFF;
-        border: 1px solid #E2E8F0;
+        border: 1px solid rgba(226, 232, 240, 0.85);
         border-radius: 12px;
-        padding: 1rem 1.15rem;
-        box-shadow: var(--shadow-sm);
-        height: 100%;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
+        padding: 13px 15px 14px;
+        background: #FFFFFF;
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        min-height: 110px;
+    }
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px -4px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+        border-color: rgba(99, 102, 241, 0.35);
     }
     .kpi-top {
         display: flex;
@@ -279,31 +287,46 @@ st.markdown("""
         margin-bottom: 0.35rem;
     }
     .kpi-label {
-        font-size: 0.76rem;
+        font-size: 0.72rem;
         font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
         color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        line-height: 1.2;
+    }
+    .kpi-icon-box {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.88rem;
+        flex-shrink: 0;
+        transition: transform 0.2s ease;
+    }
+    .kpi-card:hover .kpi-icon-box {
+        transform: scale(1.08);
     }
     .kpi-value {
-        font-size: 1.7rem;
+        font-size: 1.55rem;
         font-weight: 700;
-        color: #0F172A;
         letter-spacing: -0.025em;
         line-height: 1.15;
-        margin-bottom: 0.45rem;
+        color: #0F172A;
     }
     .kpi-sub {
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         color: #64748B;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 0.4rem;
+        margin-top: 0.35rem;
     }
     .kpi-bar-bg {
         width: 100%;
-        height: 5px;
+        height: 4.5px;
         background-color: #F1F5F9;
         border-radius: 999px;
         overflow: hidden;
@@ -315,23 +338,71 @@ st.markdown("""
         transition: width 0.3s ease;
     }
 
-    /* Card Foco de Hoje & Blocos da Grade */
+    /* Cores de ícones do CRECI-TI */
+    .icon-indigo { background-color: rgba(79, 70, 229, 0.1); color: #4F46E5; }
+    .icon-emerald { background-color: rgba(16, 185, 129, 0.12); color: #059669; }
+    .icon-amber { background-color: rgba(245, 158, 11, 0.14); color: #D97706; }
+    .icon-rose { background-color: rgba(239, 68, 68, 0.1); color: #DC2626; }
+    .icon-sky { background-color: rgba(14, 165, 233, 0.1); color: #0284C7; }
+    .icon-slate { background-color: rgba(100, 116, 139, 0.1); color: #475569; }
+
+    /* Chart Cards Limpos e Arredondados (CRECI: chart-card) */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #FFFFFF !important;
+        border: 1px solid rgba(226, 232, 240, 0.85) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02) !important;
+        padding: 1.25rem 1.45rem !important;
+        transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
+    }
+    [data-testid="stVerticalBlockBorderWrapper"]:hover {
+        border-color: rgba(203, 213, 225, 0.95) !important;
+        box-shadow: 0 8px 25px -4px rgba(15, 23, 42, 0.07) !important;
+    }
+
+    /* Título de Seções / Blocos com ícone e badge */
     .section-title {
         font-size: 0.98rem;
         font-weight: 600;
         color: #0F172A;
-        margin: 0 0 0.65rem 0;
+        margin: 0 0 0.85rem 0;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
-    .block-item {
-        background-color: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-left: 3.5px solid #4F46E5;
+    .section-title-left {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+    }
+    .chart-icon-box {
+        width: 32px;
+        height: 32px;
         border-radius: 9px;
-        padding: 0.7rem 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+
+    /* Cards de Blocos da Grade de Estudos */
+    .block-item {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-left: 4px solid #4F46E5;
+        border-radius: 10px;
+        padding: 0.8rem 1rem;
         margin-bottom: 0.55rem;
+        box-shadow: var(--shadow-2xs);
+        transition: all 0.2s ease;
+    }
+    .block-item:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+        transform: translateY(-1px);
     }
     .block-item.basica {
         border-left-color: #10B981;
@@ -357,43 +428,19 @@ st.markdown("""
         margin: 0;
     }
 
-    /* Barra Segmentada 70/30 */
-    .seg-bar-wrap {
-        margin-top: 0.4rem;
-        margin-bottom: 0.4rem;
-    }
-    .seg-bar-track {
-        width: 100%;
-        height: 10px;
-        background-color: #F1F5F9;
-        border-radius: 999px;
-        overflow: hidden;
-        display: flex;
-        position: relative;
-        border: 1px solid #E2E8F0;
-    }
-    .seg-bar-esp {
-        background-color: #4F46E5;
-        height: 100%;
-    }
-    .seg-bar-bas {
-        background-color: #10B981;
-        height: 100%;
-    }
-
-    /* Cronômetro Imersivo */
+    /* Cronômetro Imersivo Centralizado */
     .timer-container {
         background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
         border: 1px solid #E2E8F0;
-        border-radius: 14px;
-        padding: 1.25rem 1.5rem;
+        border-radius: 16px;
+        padding: 1.35rem 1.6rem;
         text-align: center;
-        box-shadow: var(--shadow-sm);
-        margin-bottom: 0.5rem;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+        margin-bottom: 0.75rem;
     }
     .timer-digits {
         font-family: 'JetBrains Mono', monospace;
-        font-size: 3.1rem;
+        font-size: 3.25rem;
         font-weight: 700;
         color: #0F172A;
         letter-spacing: 0.04em;
@@ -411,10 +458,11 @@ st.markdown("""
         text-align: center;
         background: #FFFFFF;
         border: 1px solid #E2E8F0;
-        border-radius: 9px;
-        padding: 0.4rem 0.5rem;
+        border-radius: 10px;
+        padding: 0.45rem 0.6rem;
         margin: 0.35rem 0 0.55rem 0;
         letter-spacing: 0.04em;
+        box-shadow: var(--shadow-2xs);
     }
     .sidebar-timer-digits.running {
         color: #4F46E5;
@@ -422,9 +470,23 @@ st.markdown("""
         background: #F8FAFC;
     }
 
-    /* Botões refinados */
+    /* Sanfonas limpas (st.expander) */
+    [data-testid="stExpander"] {
+        background-color: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 12px !important;
+        box-shadow: var(--shadow-2xs) !important;
+        overflow: hidden;
+    }
+    [data-testid="stExpander"] details summary {
+        font-weight: 600 !important;
+        color: #1E293B !important;
+        padding: 0.75rem 1.1rem !important;
+    }
+
+    /* Botões arredondados e elegantes */
     .stButton > button {
-        border-radius: 8px !important;
+        border-radius: 9px !important;
         font-weight: 500 !important;
         font-size: 0.85rem !important;
         transition: all 0.15s ease !important;
@@ -1435,16 +1497,18 @@ if target_certame_for_countdown and target_certame_for_countdown.get("exam_date"
         pass
 
 # ==========================================
-# 8. CABEÇALHO PRINCIPAL (HEADER LIMPO)
+# 8. CABEÇALHO PRINCIPAL (TOPBAR FLUTUANTE CLEAN)
 # ==========================================
 if filtro_certame_id is None:
-    titulo_header = "Trajetória Consolidada de Estudos"
-    sub_header = "Visão analítica integrada de horas líquidas, evolução em questões e equilíbrio 70/30"
-    eyebrow_txt = "🌐 PAINEL DE CARREIRA • TODOS OS CERTAMES"
+    titulo_header = "Passei Concurso"
+    sub_header = "Visão consolidada da trajetória • Todas as disciplinas e certames"
+    eyebrow_txt = "PAINEL DE CARREIRA"
+    banca_badge = '<span class="status-pill-badge"><i class="fa-solid fa-layer-group"></i> Todos os Concursos</span>'
 else:
     titulo_header = certame_ativo_obj["name"]
-    sub_header = f"{cargo_ativo} • Meta: {certame_ativo_obj.get('weekly_target_hours', 10.0):.0f}h/semana (Regra 70/30)"
-    eyebrow_txt = f"🎯 CERTAME EM FOCO • {status_ativo.upper()}"
+    sub_header = f"{cargo_ativo} • Meta: {certame_ativo_obj.get('weekly_target_hours', 10.0):.0f}h/semana (Ciclo 70/30)"
+    eyebrow_txt = f"FOCO ATIVO • {status_ativo.upper()}"
+    banca_badge = f'<span class="status-pill-badge">🏛️ Banca: <b>{banca_ativa}</b></span>'
 
 prova_pill = (
     f'<span class="pill pill-indigo">📅 Prova: {data_prova_fmt} ({dias_ate_prova}d)</span>'
@@ -1453,16 +1517,22 @@ prova_pill = (
 )
 
 st.markdown(f"""
-<div class="app-header">
-    <div class="header-left">
-        <div class="header-eyebrow">{eyebrow_txt}</div>
-        <h1 class="header-title">{titulo_header}</h1>
-        <p class="header-subtitle">{sub_header}</p>
+<div class="topbar-card">
+    <div class="topbar-brand">
+        <div class="topbar-brand-icon">🎯</div>
+        <div>
+            <div style="display:flex;align-items:center;gap:0.45rem;">
+                <span class="pulse-indicator"></span>
+                <span style="font-size:0.7rem;font-weight:700;color:#4F46E5;letter-spacing:0.06em;text-transform:uppercase;">{eyebrow_txt}</span>
+            </div>
+            <div class="topbar-brand-title">{titulo_header}</div>
+            <div class="topbar-brand-sub">{sub_header}</div>
+        </div>
     </div>
-    <div class="header-badges">
-        <span class="pill pill-slate">🏛️ Banca: {banca_ativa}</span>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:0.45rem;">
+        {banca_badge}
         {prova_pill}
-        <span class="pill pill-emerald">⚖️ Ciclo 70/30 Ativo</span>
+        <span class="pill pill-emerald">⚖️ Regra 70/30 Ativa</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1506,7 +1576,7 @@ with tab_dash:
         acc_pill_txt = "Abaixo de 65%"
         acc_bar_color = "#F43F5E"
 
-    # 1. KPIs em Destaque no Topo (4 Colunas)
+    # 1. KPIs em Destaque no Topo (Estilo CRECI-TI com Ícones e Micro-Barras)
     k1, k2, k3, k4 = st.columns(4)
 
     with k1:
@@ -1514,15 +1584,15 @@ with tab_dash:
         <div class="kpi-card">
             <div>
                 <div class="kpi-top">
-                    <span class="kpi-label">🗓️ Horas na Semana</span>
-                    <span class="pill pill-indigo">{prog_sem_pct:.0f}% da meta</span>
+                    <span class="kpi-label">Horas na Semana</span>
+                    <div class="kpi-icon-box icon-indigo">⏱️</div>
                 </div>
-                <div class="kpi-value">{format_hours_mins(horas_semana)} <span style="font-size:0.95rem;font-weight:500;color:#64748B;">/ {format_hours_mins(meta_sem)}</span></div>
+                <div class="kpi-value">{format_hours_mins(horas_semana)}</div>
             </div>
             <div>
                 <div class="kpi-sub">
-                    <span>Hoje: <b>{format_hours_mins(horas_hoje, short=True)}</b> (Meta {format_hours_mins(meta_dia, short=True)})</span>
-                    <span>Mês: {format_hours_mins(horas_mes, short=True)}</span>
+                    <span>Hoje: <b>{format_hours_mins(horas_hoje, short=True)}</b></span>
+                    <span class="pill pill-indigo">{prog_sem_pct:.0f}% meta</span>
                 </div>
                 <div class="kpi-bar-bg">
                     <div class="kpi-bar-fill" style="width:{prog_sem_pct:.1f}%;background:#4F46E5;"></div>
@@ -1532,21 +1602,21 @@ with tab_dash:
         """, unsafe_allow_html=True)
 
     with k2:
+        streak_icon_cls = "icon-emerald" if streak_atual > 0 else "icon-slate"
         streak_pill = "pill-emerald" if streak_atual > 0 else "pill-slate"
-        streak_status = "Consistência ativa" if streak_atual > 0 else "Estude hoje p/ iniciar"
         st.markdown(f"""
         <div class="kpi-card">
             <div>
                 <div class="kpi-top">
-                    <span class="kpi-label">🔥 Dias Consecutivos</span>
-                    <span class="pill {streak_pill}">{streak_status}</span>
+                    <span class="kpi-label">Streak • Constância</span>
+                    <div class="kpi-icon-box {streak_icon_cls}">🔥</div>
                 </div>
-                <div class="kpi-value">{streak_atual} <span style="font-size:0.95rem;font-weight:500;color:#64748B;">dias seguidos</span></div>
+                <div class="kpi-value">{streak_atual} <span style="font-size:0.92rem;font-weight:500;color:#64748B;">dias seguidos</span></div>
             </div>
             <div>
                 <div class="kpi-sub">
-                    <span>Dias ativos: <b>{total_dias_estudados}d</b></span>
-                    <span>Acumulado: <b>{format_hours_mins(horas_total, short=True)}</b></span>
+                    <span>Total ativo: <b>{total_dias_estudados}d</b></span>
+                    <span class="pill {streak_pill}">{format_hours_mins(horas_total, short=True)} tot</span>
                 </div>
                 <div class="kpi-bar-bg">
                     <div class="kpi-bar-fill" style="width:{min(streak_atual * 14.2, 100):.1f}%;background:#10B981;"></div>
@@ -1556,19 +1626,22 @@ with tab_dash:
         """, unsafe_allow_html=True)
 
     with k3:
+        q_icon_cls = "icon-emerald" if taxa_geral >= 80 else ("icon-amber" if taxa_geral >= 65 else "icon-rose")
+        if total_q_feitas == 0:
+            q_icon_cls = "icon-slate"
         st.markdown(f"""
         <div class="kpi-card">
             <div>
                 <div class="kpi-top">
-                    <span class="kpi-label">🎯 Média de Acertos</span>
-                    <span class="pill {acc_pill_cls}">{acc_pill_txt}</span>
+                    <span class="kpi-label">Média de Acertos</span>
+                    <div class="kpi-icon-box {q_icon_cls}">🎯</div>
                 </div>
-                <div class="kpi-value">{taxa_geral:.1f}% <span style="font-size:0.95rem;font-weight:500;color:#64748B;">({total_q_acertos}/{total_q_feitas})</span></div>
+                <div class="kpi-value">{taxa_geral:.1f}%</div>
             </div>
             <div>
                 <div class="kpi-sub">
-                    <span>Questões feitas: <b>{total_q_feitas}</b></span>
-                    <span>Alvo: <b>80%+</b></span>
+                    <span>Feitas: <b>{total_q_feitas}</b> ({total_q_acertos} acertos)</span>
+                    <span class="pill {acc_pill_cls}">{acc_pill_txt}</span>
                 </div>
                 <div class="kpi-bar-bg">
                     <div class="kpi-bar-fill" style="width:{min(taxa_geral, 100):.1f}%;background:{acc_bar_color};"></div>
@@ -1585,18 +1658,18 @@ with tab_dash:
             <div class="kpi-card">
                 <div>
                     <div class="kpi-top">
-                        <span class="kpi-label">⏳ Contagem Regressiva</span>
-                        <span class="pill pill-indigo">{data_prova_fmt}</span>
+                        <span class="kpi-label">Contagem Regressiva</span>
+                        <div class="kpi-icon-box icon-sky">⏳</div>
                     </div>
-                    <div class="kpi-value">{dias_ate_prova} <span style="font-size:0.95rem;font-weight:500;color:#64748B;">dias até a prova</span></div>
+                    <div class="kpi-value">{dias_ate_prova} <span style="font-size:0.92rem;font-weight:500;color:#64748B;">dias p/ prova</span></div>
                 </div>
                 <div>
                     <div class="kpi-sub">
-                        <span>~{semanas_rest:.1f} semanas úteis</span>
-                        <span>Orçamento: <b>~{horas_proj}h</b></span>
+                        <span>~{semanas_rest:.1f} sem. restantes</span>
+                        <span class="pill pill-indigo">~{horas_proj}h orçadas</span>
                     </div>
                     <div class="kpi-bar-bg">
-                        <div class="kpi-bar-fill" style="width:{prog_dia_pct:.1f}%;background:#6366F1;"></div>
+                        <div class="kpi-bar-fill" style="width:{prog_dia_pct:.1f}%;background:#0284C7;"></div>
                     </div>
                 </div>
             </div>
@@ -1606,18 +1679,18 @@ with tab_dash:
             <div class="kpi-card">
                 <div>
                     <div class="kpi-top">
-                        <span class="kpi-label">⏳ Ritmo Diário</span>
-                        <span class="pill pill-indigo">{prog_dia_pct:.0f}% hoje</span>
+                        <span class="kpi-label">Ritmo Diário</span>
+                        <div class="kpi-icon-box icon-sky">⚡</div>
                     </div>
-                    <div class="kpi-value">{format_hours_mins(horas_hoje)} <span style="font-size:0.95rem;font-weight:500;color:#64748B;">/ {format_hours_mins(meta_dia)} hoje</span></div>
+                    <div class="kpi-value">{format_hours_mins(horas_hoje)}</div>
                 </div>
                 <div>
                     <div class="kpi-sub">
                         <span>Meta diária: <b>{format_hours_mins(meta_dia, short=True)}</b></span>
-                        <span>Meta semanal: <b>{format_hours_mins(meta_sem, short=True)}</b></span>
+                        <span class="pill pill-indigo">{prog_dia_pct:.0f}% hoje</span>
                     </div>
                     <div class="kpi-bar-bg">
-                        <div class="kpi-bar-fill" style="width:{prog_dia_pct:.1f}%;background:#6366F1;"></div>
+                        <div class="kpi-bar-fill" style="width:{prog_dia_pct:.1f}%;background:#0284C7;"></div>
                     </div>
                 </div>
             </div>
