@@ -687,36 +687,52 @@ st.markdown("""
         transform: translateX(-50%) translateY(0);
     }
 
-    /* Ajuste de padding e dimensões aumentadas e padronizadas para as células de dia no calendário */
-    [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"] {
-        padding: 8px 9px !important;
-        border-radius: 14px !important;
-        min-height: 185px !important;
-        max-height: 370px !important;
-        overflow-y: auto !important;
+    /* ========================================================= */
+    /* GRID DO CALENDÁRIO: LINHAS COM ALTURA IGUAL AO MAIOR QUADRADO */
+    /* MIN-HEIGHT: 110px (1 SESSÃO), MAX-HEIGHT: 175px (2 SESSÕES + MAIS) */
+    /* ========================================================= */
+    [data-testid="stHorizontalBlock"]:has(.cal-day-header) {
+        align-items: stretch !important;
         margin-bottom: 0.35rem !important;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.cal-day-header) > [data-testid="column"],
+    [data-testid="column"]:has(.cal-day-header) {
         display: flex !important;
         flex-direction: column !important;
+        align-self: stretch !important;
     }
-    [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"]:hover {
+    [data-testid="stHorizontalBlock"]:has(.cal-day-header) > [data-testid="column"] > div,
+    [data-testid="column"]:has(.cal-day-header) > div {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 100% !important;
+        height: 100% !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.cal-day-header) > [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"],
+    [data-testid="column"]:has(.cal-day-header) [data-testid="stVerticalBlockBorderWrapper"] {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 100% !important;
+        height: 100% !important;
+        min-height: 110px !important;
+        max-height: 175px !important;
+        padding: 7px 8px !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.cal-day-header) > [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"]:hover,
+    [data-testid="column"]:has(.cal-day-header) [data-testid="stVerticalBlockBorderWrapper"]:hover {
         border-color: #CBD5E1 !important;
         box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
     }
-    /* Scrollbar suave para dias expandidos */
-    [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"]::-webkit-scrollbar {
-        width: 4px;
-    }
-    [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"]::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"]::-webkit-scrollbar-thumb {
-        background: #CBD5E1;
-        border-radius: 4px;
-    }
-
-    /* Espaçamento reduzido e harmônico entre as sessões no calendário */
-    [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlock"] {
+    [data-testid="stHorizontalBlock"]:has(.cal-day-header) > [data-testid="column"] [data-testid="stVerticalBlock"],
+    [data-testid="column"]:has(.cal-day-header) [data-testid="stVerticalBlock"] {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 auto !important;
+        height: 100% !important;
         gap: 0.22rem !important;
     }
 
@@ -730,11 +746,20 @@ st.markdown("""
         background-color: #F8FAFC !important;
     }
 
-        /* Modal de Edição Amplo e Harmônico */
+    /* Modal Dialog com Backdrop Blur e Sombra Refinada (Sobreposição elegante) */
+    div[data-testid="stDialog"],
+    div[data-testid="stModal"] {
+        background-color: rgba(15, 23, 42, 0.45) !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+    }
     div[data-testid="stDialog"] div[role="dialog"] {
         border-radius: 18px !important;
-        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25) !important;
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35) !important;
         border: 1px solid #E2E8F0 !important;
+        background-color: #FFFFFF !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
     }
 
     /* Popover Flutuante no Hover da Sessão (Posicionado à direita, estilo limpo e objetivo) */
@@ -840,7 +865,8 @@ st.markdown("""
     div[class*="st-key-cal_sess_geral_"] button {
         border-left-color: #4F46E5 !important;
     }
-        /* Botão sutil de expandir / recolher sessões adicionais do dia */
+    /* Botão sutil de abrir pop-up com sessões adicionais do dia */
+    div[class*="st-key-btn_day_more_"] button,
     div[class*="st-key-btn_exp_"] button,
     div[class*="st-key-btn_col_"] button {
         background-color: rgba(79, 70, 229, 0.04) !important;
@@ -2857,6 +2883,95 @@ with tab_reg:
 # ------------------------------------------
 
 # ==========================================
+# MODAL DIALOG PARA VISUALIZAÇÃO DAS SESSÕES DO DIA (POP-UP SOBREPOSTO COM BLUR)
+# ==========================================
+@st.dialog("📅 Sessões de Estudo do Dia", width="large")
+def modal_sessoes_dia(d_str: str):
+    sess_do_dia = [s for s in st.session_state.sessions if str(s.get("date", "")).strip() == d_str]
+    
+    try:
+        d_obj = datetime.strptime(d_str, "%Y-%m-%d").date()
+        dias_semana_ext = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+        nomes_meses_ext = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+        data_fmt = f"{dias_semana_ext[d_obj.weekday()]}, {d_obj.day:02d} de {nomes_meses_ext[d_obj.month]} de {d_obj.year}"
+    except Exception:
+        data_fmt = d_str
+
+    min_dia_tot = sum(s.get("duration_min", 0) for s in sess_do_dia)
+    qtot_dia = sum(s.get("questions_total", 0) for s in sess_do_dia)
+    qcor_dia = sum(s.get("questions_correct", 0) for s in sess_do_dia)
+    acc_dia = (qcor_dia / qtot_dia * 100.0) if qtot_dia > 0 else 0.0
+
+    st.markdown(f"""
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;padding-bottom:0.85rem;margin-bottom:1.1rem;border-bottom:1px solid #E2E8F0;">
+        <div>
+            <div style="font-size:1.15rem;font-weight:700;color:#0F172A;">📅 {data_fmt}</div>
+            <div style="font-size:0.82rem;color:#64748B;margin-top:2px;">Todas as atividades e sessões de estudo realizadas neste dia</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;">
+            <span class="status-pill-badge" style="font-size:0.8rem;padding:3px 10px;">⏱️ Total: <b>{format_hours_mins(min_dia_tot / 60.0)}</b></span>
+            {f'<span class="status-pill-badge" style="font-size:0.8rem;padding:3px 10px;">🎯 Questões: <b>{qtot_dia}</b> ({qcor_dia} acertos • <b>{acc_dia:.1f}%</b>)</span>' if qtot_dia > 0 else '<span class="status-pill-badge" style="font-size:0.8rem;padding:3px 10px;">⚪ Teoria</span>'}
+            <span class="pill pill-indigo" style="font-size:0.8rem;padding:3px 10px;">{len(sess_do_dia)} sessões</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if not sess_do_dia:
+        st.info("Nenhuma sessão registrada para esta data.")
+    else:
+        for idx, s in enumerate(sess_do_dia):
+            s_id = str(s.get("id"))
+            s_mat = s.get("subject", "Geral")
+            s_top = s.get("topic") or "Sem tópico específico"
+            s_min = s.get("duration_min", 0)
+            s_qt = int(s.get("questions_total", 0))
+            s_qc = int(s.get("questions_correct", 0))
+            s_acc = float(s.get("accuracy_pct", 0.0))
+            s_type = s.get("study_type", "Geral")
+            s_notes = (s.get("notes") or "").strip()
+            s_cert = s.get("certame_name", "Geral")
+
+            cor_borda = "#4F46E5"
+            if "Básica" in s.get("block", "") or "Básic" in s_type:
+                cor_borda = "#10B981"
+            elif "Discursiva" in s.get("block", "") or "Discursiva" in s_type:
+                cor_borda = "#7C3AED"
+            elif "Revisão" in s_type:
+                cor_borda = "#F59E0B"
+
+            tag_acc = f"🟢 {s_acc:.0f}% ({s_qc}/{s_qt} questões)" if s_acc >= 80 else (f"🟡 {s_acc:.0f}% ({s_qc}/{s_qt} questões)" if s_acc >= 65 else f"🔴 {s_acc:.0f}% ({s_qc}/{s_qt} questões)") if s_qt > 0 else "⚪ Teoria & Conceitos"
+            dur_fmt = f"{s_min} min" if s_min < 60 else format_hours_mins(s_min / 60.0, short=True)
+
+            with st.container(border=True):
+                col_info, col_act = st.columns([4.2, 1.2], gap="small")
+                with col_info:
+                    notas_html = f'<div style="margin-top:6px;font-size:0.8rem;background:#F8FAFC;padding:6px 10px;border-radius:6px;border:1px dashed #CBD5E1;color:#334155;"><b>📝 Caderno de Erros / Notas:</b> {s_notes}</div>' if s_notes and s_notes not in ["Sem observações", "Sem observação", "None"] else ""
+                    st.markdown(f"""
+                    <div style="border-left:4px solid {cor_borda};padding-left:10px;">
+                        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:3px;">
+                            <span style="font-weight:700;font-size:0.95rem;color:#0F172A;">📖 {s_mat}</span>
+                            <span class="pill pill-indigo" style="font-size:0.72rem;">🏷️ {s_type}</span>
+                            <span class="status-pill-badge" style="font-size:0.72rem;">⏱️ {dur_fmt}</span>
+                            <span class="status-pill-badge" style="font-size:0.72rem;">{tag_acc}</span>
+                        </div>
+                        <div style="font-size:0.83rem;color:#475569;margin-bottom:2px;"><b>📌 Tópico:</b> {s_top}</div>
+                        <div style="font-size:0.78rem;color:#64748B;"><b>🎯 Certame:</b> {s_cert}</div>
+                        {notas_html}
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col_act:
+                    st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
+                    if st.button("✏️ Editar", key=f"btn_edit_modal_day_{s_id}_{idx}", use_container_width=True):
+                        st.session_state.modal_edit_sess_id = s_id
+                        st.session_state["target_nav_tab"] = "📅 Calendário de Estudos"
+                        st.rerun()
+
+    st.markdown("<div style='margin-top:0.8rem;'></div>", unsafe_allow_html=True)
+    if st.button("Fechar", key=f"close_day_modal_{d_str}", use_container_width=True):
+        st.session_state["target_nav_tab"] = "📅 Calendário de Estudos"
+        st.rerun()
+
+# ==========================================
 # MODAL DIALOG PARA EDIÇÃO DA SESSÃO DE ESTUDO
 # ==========================================
 @st.dialog("✏️ Editar Sessão de Estudo", width="large")
@@ -2953,6 +3068,7 @@ def modal_editar_sessao(sessao_id: str):
 
             st.toast("Sessão atualizada com sucesso!", icon="✅")
             st.session_state.modal_edit_sess_id = None
+            st.session_state["target_nav_tab"] = "📅 Calendário de Estudos"
             st.rerun()
 
         if excluir:
@@ -2961,10 +3077,12 @@ def modal_editar_sessao(sessao_id: str):
             save_sessions(st.session_state.sessions)
             st.toast("Sessão removida!", icon="🗑️")
             st.session_state.modal_edit_sess_id = None
+            st.session_state["target_nav_tab"] = "📅 Calendário de Estudos"
             st.rerun()
 
         if fechar:
             st.session_state.modal_edit_sess_id = None
+            st.session_state["target_nav_tab"] = "📅 Calendário de Estudos"
             st.rerun()
 
 # ------------------------------------------
@@ -2977,6 +3095,11 @@ with tab_hist:
     if st.session_state.get("modal_edit_sess_id"):
         sess_modal_id = st.session_state.pop("modal_edit_sess_id")
         modal_editar_sessao(sess_modal_id)
+
+    # Se houver um dia disparado para visualização detalhada via modal dialog
+    if st.session_state.get("modal_view_day"):
+        day_modal_str = st.session_state.pop("modal_view_day")
+        modal_sessoes_dia(day_modal_str)
 
     # 1. Barra de Controles e Filtros do Calendário (Estilo ASSETI)
     hoje_cal = get_current_date()
@@ -3122,12 +3245,9 @@ with tab_hist:
                             unsafe_allow_html=True
                         )
 
-                        if "cal_expanded_days" not in st.session_state:
-                            st.session_state.cal_expanded_days = set()
-
                         total_sess = len(sess_do_dia)
-                        is_exp = d_str in st.session_state.cal_expanded_days
-                        sess_visiveis = sess_do_dia if (is_exp or total_sess <= 2) else sess_do_dia[:2]
+                        # No calendário de mês, exibe no máximo 2 sessões por dia (altura equivalente à Imagem 1)
+                        sess_visiveis = sess_do_dia[:2] if total_sess > 2 else sess_do_dia
 
                         for s in sess_visiveis:
                             s_id = str(s.get("id"))
@@ -3170,18 +3290,16 @@ with tab_hist:
 
                             btn_key = f"cal_sess_{tipo_prefix}_{s_id}"
                             if st.button(btn_label, key=btn_key, help=btn_help, use_container_width=True):
-                                modal_editar_sessao(s_id)
+                                st.session_state.modal_edit_sess_id = s_id
+                                st.session_state["target_nav_tab"] = "📅 Calendário de Estudos"
+                                st.rerun()
 
-                        # Botão para expandir ou recolher sessões adicionais daquele dia específico
+                        # Botão sutil "+ X mais ▾": abre o modal dialog pop-up com fundo desfocado
                         if total_sess > 2:
-                            if not is_exp:
-                                if st.button(f"+ {total_sess - 2} mais ▾", key=f"btn_exp_{d_str}", use_container_width=True):
-                                    st.session_state.cal_expanded_days.add(d_str)
-                                    st.rerun()
-                            else:
-                                if st.button("Recolher ▴", key=f"btn_col_{d_str}", use_container_width=True):
-                                    st.session_state.cal_expanded_days.discard(d_str)
-                                    st.rerun()
+                            mais_qtd = total_sess - 2
+                            if st.button(f"+ {mais_qtd} mais ▾", key=f"btn_day_more_{d_str}", use_container_width=True):
+                                st.session_state["target_nav_tab"] = "📅 Calendário de Estudos"
+                                modal_sessoes_dia(d_str)
 
     # ------------------------------------------
     # VISUALIZAÇÃO 2: MODO LISTA / TABELA FILTRADA
