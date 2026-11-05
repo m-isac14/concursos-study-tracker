@@ -87,13 +87,16 @@ st.markdown("""
         color: var(--text-slate) !important;
     }
 
-    /* Container principal limpo e responsivo */
-    .block-container {
-        padding-top: 1.25rem !important;
+    /* Container principal em largura total para aproveitar todo o espaço da tela (sem limites centrais) */
+    .block-container,
+    [data-testid="stMainBlockContainer"],
+    [data-testid="stAppViewBlockContainer"] {
+        padding-top: 1.15rem !important;
         padding-bottom: 2.5rem !important;
-        padding-left: 2rem !important;
-        padding-right: 2rem !important;
-        max-width: 1440px;
+        padding-left: 1.75rem !important;
+        padding-right: 1.75rem !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
 
     /* Sidebar minimalista e acolhedora */
@@ -684,18 +687,39 @@ st.markdown("""
         transform: translateX(-50%) translateY(0);
     }
 
-    /* Ajuste de padding e dimensões para as células de dia no calendário semanal */
+    /* Ajuste de padding e dimensões aumentadas e padronizadas para as células de dia no calendário */
     [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"] {
-        padding: 7px 8px !important;
-        border-radius: 12px !important;
-        min-height: 115px !important;
-        margin-bottom: 0.25rem !important;
+        padding: 8px 9px !important;
+        border-radius: 14px !important;
+        min-height: 185px !important;
+        max-height: 370px !important;
+        overflow-y: auto !important;
+        margin-bottom: 0.35rem !important;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
     [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"]:hover {
         border-color: #CBD5E1 !important;
         box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
     }
+    /* Scrollbar suave para dias expandidos */
+    [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"]::-webkit-scrollbar {
+        width: 4px;
+    }
+    [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"]::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"]::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 4px;
+    }
+
+    /* Espaçamento reduzido e harmônico entre as sessões no calendário */
+    [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlock"] {
+        gap: 0.22rem !important;
+    }
+
     /* Estilo de dia de hoje e outro mês */
     [data-testid="column"] div:has(.today-num) {
         border: 2px solid #4F46E5 !important;
@@ -754,18 +778,18 @@ st.markdown("""
         border-top: 1px dashed #E2E8F0 !important;
     }
 
-    /* Cards de Sessões Interativos no Calendário (Botões Nativos sem reload de página) */
+    /* Cards de Sessões Interativos no Calendário (Espaçamento reduzido e harmônico) */
     div[class*="st-key-cal_sess_"] {
-        margin-top: 3px !important;
-        margin-bottom: 3px !important;
+        margin-top: 1px !important;
+        margin-bottom: 1px !important;
     }
     div[class*="st-key-cal_sess_"] button {
         background-color: #F8FAFC !important;
         border: 1px solid #E2E8F0 !important;
         border-left: 3.5px solid #4F46E5 !important;
         border-radius: 8px !important;
-        padding: 5px 7px !important;
-        min-height: 42px !important;
+        padding: 4px 7px !important;
+        min-height: 38px !important;
         height: auto !important;
         text-align: left !important;
         justify-content: flex-start !important;
@@ -816,6 +840,35 @@ st.markdown("""
     div[class*="st-key-cal_sess_geral_"] button {
         border-left-color: #4F46E5 !important;
     }
+        /* Botão sutil de expandir / recolher sessões adicionais do dia */
+    div[class*="st-key-btn_exp_"] button,
+    div[class*="st-key-btn_col_"] button {
+        background-color: rgba(79, 70, 229, 0.04) !important;
+        border: 1px dashed #CBD5E1 !important;
+        color: #4F46E5 !important;
+        font-size: 0.72rem !important;
+        font-weight: 600 !important;
+        padding: 2px 6px !important;
+        min-height: 24px !important;
+        height: 25px !important;
+        border-radius: 6px !important;
+        margin-top: 3px !important;
+        margin-bottom: 2px !important;
+        box-shadow: none !important;
+        transition: all 0.15s ease !important;
+        width: 100% !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+    div[class*="st-key-btn_exp_"] button:hover,
+    div[class*="st-key-btn_col_"] button:hover {
+        background-color: rgba(79, 70, 229, 0.1) !important;
+        border-color: #6366F1 !important;
+        color: #3730A3 !important;
+        transform: translateY(-1px) !important;
+    }
+
     div[class*="st-key-cal_sess_geral_"] button:hover {
         background-color: #EEF2FF !important;
     }
@@ -3069,7 +3122,14 @@ with tab_hist:
                             unsafe_allow_html=True
                         )
 
-                        for s in sess_do_dia:
+                        if "cal_expanded_days" not in st.session_state:
+                            st.session_state.cal_expanded_days = set()
+
+                        total_sess = len(sess_do_dia)
+                        is_exp = d_str in st.session_state.cal_expanded_days
+                        sess_visiveis = sess_do_dia if (is_exp or total_sess <= 2) else sess_do_dia[:2]
+
+                        for s in sess_visiveis:
                             s_id = str(s.get("id"))
                             s_mat = s.get("subject", "Geral")
                             s_top = s.get("topic") or "Sem tópico"
@@ -3111,6 +3171,17 @@ with tab_hist:
                             btn_key = f"cal_sess_{tipo_prefix}_{s_id}"
                             if st.button(btn_label, key=btn_key, help=btn_help, use_container_width=True):
                                 modal_editar_sessao(s_id)
+
+                        # Botão para expandir ou recolher sessões adicionais daquele dia específico
+                        if total_sess > 2:
+                            if not is_exp:
+                                if st.button(f"+ {total_sess - 2} mais ▾", key=f"btn_exp_{d_str}", use_container_width=True):
+                                    st.session_state.cal_expanded_days.add(d_str)
+                                    st.rerun()
+                            else:
+                                if st.button("Recolher ▴", key=f"btn_col_{d_str}", use_container_width=True):
+                                    st.session_state.cal_expanded_days.discard(d_str)
+                                    st.rerun()
 
     # ------------------------------------------
     # VISUALIZAÇÃO 2: MODO LISTA / TABELA FILTRADA
