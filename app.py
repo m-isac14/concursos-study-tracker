@@ -713,6 +713,43 @@ st.markdown("""
         border: 1px solid #E2E8F0 !important;
     }
 
+    /* Popover Flutuante no Hover da Sessão (Posicionado à direita, estilo limpo e objetivo) */
+    div[data-baseweb="tooltip"] {
+        background-color: #FFFFFF !important;
+        border: 1px solid #CBD5E1 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.2), 0 4px 10px -2px rgba(15, 23, 42, 0.1) !important;
+        padding: 11px 14px !important;
+        color: #0F172A !important;
+        max-width: 300px !important;
+        transform: translate(75px, 35px) !important;
+    }
+    div[data-baseweb="tooltip"] p {
+        color: #334155 !important;
+        font-size: 0.77rem !important;
+        line-height: 1.55 !important;
+        margin: 0 !important;
+        white-space: normal !important;
+    }
+    div[data-baseweb="tooltip"] strong {
+        color: #0F172A !important;
+        font-size: 0.84rem !important;
+        display: block !important;
+        margin-bottom: 4px !important;
+        padding-bottom: 4px !important;
+        border-bottom: 1px solid #E2E8F0 !important;
+    }
+    div[data-baseweb="tooltip"] em {
+        color: #4F46E5 !important;
+        font-weight: 600 !important;
+        font-size: 0.73rem !important;
+        font-style: normal !important;
+        display: block !important;
+        margin-top: 6px !important;
+        padding-top: 4px !important;
+        border-top: 1px dashed #E2E8F0 !important;
+    }
+
     /* Cards de Sessões Interativos no Calendário (Botões Nativos sem reload de página) */
     div[class*="st-key-cal_sess_"] {
         margin-top: 3px !important;
@@ -3052,15 +3089,20 @@ with tab_hist:
                             tag_acc_full = f"🟢 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 80 else (f"🟡 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 65 else f"🔴 {s_acc:.0f}% ({s_qc}/{s_qt})") if s_qt > 0 else "⚪ Teoria"
 
                             btn_label = f"📖 **{s_mat}**  \n⏱️ {s_min}m • {tag_acc_short}"
+
+                            # Omissão de nomes de categorias para exibição limpa e objetiva: Ícone + Valor
+                            s_type_clean = s_type.replace("🏷️", "").strip()
+                            notas_clean = s_notes.strip() if s_notes and s_notes.strip() not in ["Sem observações", "Sem observação", "None", ""] else "Sem anotações"
+
                             btn_help = (
-                                f"📖 Disciplina: {s_mat}\n"
-                                f"📌 Tópico: {s_top}\n"
-                                f"🎯 Certame: {s_cert}\n"
-                                f"⏱️ Duração: {s_min} min ({format_hours_mins(s_min/60.0, short=True)})\n"
-                                f"🎯 Desempenho: {tag_acc_full}\n"
-                                f"🏷️ Modalidade: {s_type}\n"
-                                f"📝 Notas: {s_notes}\n\n"
-                                f"✏️ Clique para editar esta sessão"
+                                f"📖 **{s_mat}**  \n"
+                                f"📌 {s_top}  \n"
+                                f"🎯 {s_cert}  \n"
+                                f"⏱️ {s_min} min ({format_hours_mins(s_min/60.0, short=True)})  \n"
+                                f"{tag_acc_full}  \n"
+                                f"🏷️ {s_type_clean}  \n"
+                                f"📝 {notas_clean}  \n\n"
+                                f"✏️ *Clique para editar*"
                             )
 
                             btn_key = f"cal_sess_{tipo_prefix}_{s_id}"
