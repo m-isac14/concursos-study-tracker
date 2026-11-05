@@ -2940,7 +2940,7 @@ def modal_sessoes_dia(d_str: str):
                 cor_borda = "#F59E0B"
 
             tag_acc = f"🟢 {s_acc:.0f}% ({s_qc}/{s_qt} questões)" if s_acc >= 80 else (f"🟡 {s_acc:.0f}% ({s_qc}/{s_qt} questões)" if s_acc >= 65 else f"🔴 {s_acc:.0f}% ({s_qc}/{s_qt} questões)") if s_qt > 0 else "⚪ Teoria & Conceitos"
-            dur_fmt = f"{s_min} min" if s_min < 60 else format_hours_mins(s_min / 60.0, short=True)
+            dur_fmt = format_hours_mins(s_min / 60.0, short=True)
 
             with st.container(border=True):
                 col_info, col_act = st.columns([4.2, 1.2], gap="small")
@@ -3272,11 +3272,12 @@ with tab_hist:
                             tag_acc_short = f"🟢 {s_acc:.0f}%" if s_acc >= 80 else (f"🟡 {s_acc:.0f}%" if s_acc >= 65 else f"🔴 {s_acc:.0f}%") if s_qt > 0 else "⚪ Teoria"
                             tag_acc_full = f"🟢 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 80 else (f"🟡 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 65 else f"🔴 {s_acc:.0f}% ({s_qc}/{s_qt})") if s_qt > 0 else "⚪ Teoria"
 
-                            btn_label = f"📖 **{s_mat}**  \n⏱️ {s_min}m • {tag_acc_short}"
+                            dur_sess_fmt = format_hours_mins(s_min / 60.0, short=True)
+                            btn_label = f"📖 **{s_mat}**  \n⏱️ {dur_sess_fmt} • {tag_acc_short}"
 
                             # Omissão de nomes de categorias para exibição limpa e objetiva: Ícone + Valor (sem modalidade)
                             notas_clean = s_notes.strip() if s_notes and s_notes.strip() not in ["Sem observações", "Sem observação", "None", ""] else "Sem anotações"
-                            dur_fmt = f"{s_min} min" if s_min < 60 else format_hours_mins(s_min / 60.0, short=True)
+                            dur_fmt = dur_sess_fmt
 
                             btn_help = (
                                 f"📖 **{s_mat}**  \n"
