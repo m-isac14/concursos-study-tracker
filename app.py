@@ -849,21 +849,27 @@ st.markdown("""
     div[class*="st-key-cal_sess_geral_"] button {
         border-left-color: #4F46E5 !important;
     }
-    /* Botão sutil de abrir pop-up com sessões adicionais do dia */
+    /* Botão sem fundo "+ X" com texto em negrito e espaçamento superior reduzido */
+    div[class*="st-key-btn_day_more_"] {
+        margin-top: -4px !important;
+        margin-bottom: 0px !important;
+        padding-top: 0px !important;
+    }
     div[class*="st-key-btn_day_more_"] button,
     div[class*="st-key-btn_exp_"] button,
     div[class*="st-key-btn_col_"] button {
-        background-color: rgba(79, 70, 229, 0.04) !important;
+        background-color: transparent !important;
+        background: transparent !important;
         border: 1px dashed #CBD5E1 !important;
         color: #4F46E5 !important;
-        font-size: 0.72rem !important;
-        font-weight: 600 !important;
-        padding: 2px 6px !important;
-        min-height: 24px !important;
-        height: 25px !important;
+        font-size: 0.74rem !important;
+        font-weight: 700 !important;
+        padding: 1px 4px !important;
+        min-height: 22px !important;
+        height: 22px !important;
         border-radius: 6px !important;
-        margin-top: 3px !important;
-        margin-bottom: 2px !important;
+        margin-top: 0px !important;
+        margin-bottom: 0px !important;
         box-shadow: none !important;
         transition: all 0.15s ease !important;
         width: 100% !important;
@@ -871,9 +877,17 @@ st.markdown("""
         align-items: center !important;
         text-align: center !important;
     }
+    div[class*="st-key-btn_day_more_"] button p,
+    div[class*="st-key-btn_day_more_"] button span,
+    div[class*="st-key-btn_day_more_"] button div {
+        font-weight: 700 !important;
+        color: #4F46E5 !important;
+        font-size: 0.74rem !important;
+    }
+    div[class*="st-key-btn_day_more_"] button:hover,
     div[class*="st-key-btn_exp_"] button:hover,
     div[class*="st-key-btn_col_"] button:hover {
-        background-color: rgba(79, 70, 229, 0.1) !important;
+        background-color: rgba(79, 70, 229, 0.05) !important;
         border-color: #6366F1 !important;
         color: #3730A3 !important;
         transform: translateY(-1px) !important;
@@ -3289,10 +3303,10 @@ with tab_hist:
                                 st.session_state["target_nav_tab"] = "📅 Calendário de Estudos"
                                 st.rerun()
 
-                        # Botão sutil "+ X mais ▾": abre o modal dialog pop-up com fundo desfocado
+                        # Botão minimalista sem fundo "+ X": abre o modal dialog pop-up com fundo desfocado
                         if total_sess > 2:
                             mais_qtd = total_sess - 2
-                            if st.button(f"+ {mais_qtd} mais ▾", key=f"btn_day_more_{d_str}", use_container_width=True):
+                            if st.button(f"+ {mais_qtd}", key=f"btn_day_more_{d_str}", use_container_width=True):
                                 st.session_state["target_nav_tab"] = "📅 Calendário de Estudos"
                                 modal_sessoes_dia(d_str)
 
