@@ -721,8 +721,12 @@ st.markdown("""
         box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.2), 0 4px 10px -2px rgba(15, 23, 42, 0.1) !important;
         padding: 11px 14px !important;
         color: #0F172A !important;
-        max-width: 300px !important;
-        transform: translate(75px, 35px) !important;
+        max-width: 285px !important;
+        transform: translate(calc(50% + 80px), calc(100% + 10px)) !important;
+    }
+    div[data-baseweb="popover"] svg,
+    div[data-baseweb="tooltip"] ~ div {
+        display: none !important;
     }
     div[data-baseweb="tooltip"] p {
         color: #334155 !important;
@@ -3090,17 +3094,16 @@ with tab_hist:
 
                             btn_label = f"📖 **{s_mat}**  \n⏱️ {s_min}m • {tag_acc_short}"
 
-                            # Omissão de nomes de categorias para exibição limpa e objetiva: Ícone + Valor
-                            s_type_clean = s_type.replace("🏷️", "").strip()
+                            # Omissão de nomes de categorias para exibição limpa e objetiva: Ícone + Valor (sem modalidade)
                             notas_clean = s_notes.strip() if s_notes and s_notes.strip() not in ["Sem observações", "Sem observação", "None", ""] else "Sem anotações"
+                            dur_fmt = f"{s_min} min" if s_min < 60 else format_hours_mins(s_min / 60.0, short=True)
 
                             btn_help = (
                                 f"📖 **{s_mat}**  \n"
                                 f"📌 {s_top}  \n"
                                 f"🎯 {s_cert}  \n"
-                                f"⏱️ {s_min} min ({format_hours_mins(s_min/60.0, short=True)})  \n"
+                                f"⏱️ {dur_fmt}  \n"
                                 f"{tag_acc_full}  \n"
-                                f"🏷️ {s_type_clean}  \n"
                                 f"📝 {notas_clean}  \n\n"
                                 f"✏️ *Clique para editar*"
                             )
