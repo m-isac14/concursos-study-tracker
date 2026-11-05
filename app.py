@@ -683,6 +683,94 @@ st.markdown("""
         opacity: 1;
         transform: translateX(-50%) translateY(0);
     }
+
+    /* Ajuste de padding e dimensões para as células de dia no calendário semanal */
+    [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"] {
+        padding: 7px 8px !important;
+        border-radius: 12px !important;
+        min-height: 115px !important;
+        margin-bottom: 0.25rem !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    [data-testid="stHorizontalBlock"] [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"]:hover {
+        border-color: #CBD5E1 !important;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
+    }
+    /* Estilo de dia de hoje e outro mês */
+    [data-testid="column"] div:has(.today-num) {
+        border: 2px solid #4F46E5 !important;
+        background-color: #FAF5FF !important;
+    }
+    [data-testid="column"] div:has(.other-month-marker) {
+        opacity: 0.45 !important;
+        background-color: #F8FAFC !important;
+    }
+
+    /* Cards de Sessões Interativos no Calendário (Botões Nativos sem reload de página) */
+    div[class*="st-key-cal_sess_"] {
+        margin-top: 3px !important;
+        margin-bottom: 3px !important;
+    }
+    div[class*="st-key-cal_sess_"] button {
+        background-color: #F8FAFC !important;
+        border: 1px solid #E2E8F0 !important;
+        border-left: 3.5px solid #4F46E5 !important;
+        border-radius: 8px !important;
+        padding: 5px 7px !important;
+        min-height: 42px !important;
+        height: auto !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        align-items: flex-start !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+        transition: all 0.15s ease !important;
+        width: 100% !important;
+        cursor: pointer !important;
+    }
+    div[class*="st-key-cal_sess_"] button:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08) !important;
+        border-color: #CBD5E1 !important;
+        background-color: #EEF2FF !important;
+    }
+    div[class*="st-key-cal_sess_"] button p,
+    div[class*="st-key-cal_sess_"] button span,
+    div[class*="st-key-cal_sess_"] button div {
+        font-size: 0.73rem !important;
+        color: #1E293B !important;
+        line-height: 1.25 !important;
+        text-align: left !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+    div[class*="st-key-cal_sess_basica_"] button {
+        border-left-color: #10B981 !important;
+    }
+    div[class*="st-key-cal_sess_basica_"] button:hover {
+        background-color: #ECFDF5 !important;
+    }
+    div[class*="st-key-cal_sess_discursiva_"] button {
+        border-left-color: #7C3AED !important;
+    }
+    div[class*="st-key-cal_sess_discursiva_"] button:hover {
+        background-color: #F5F3FF !important;
+    }
+    div[class*="st-key-cal_sess_revisao_"] button {
+        border-left-color: #F59E0B !important;
+    }
+    div[class*="st-key-cal_sess_revisao_"] button:hover {
+        background-color: #FFFBEB !important;
+    }
+    div[class*="st-key-cal_sess_geral_"] button {
+        border-left-color: #4F46E5 !important;
+    }
+    div[class*="st-key-cal_sess_geral_"] button:hover {
+        background-color: #EEF2FF !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1729,18 +1817,38 @@ st.markdown(f"""
 # ==========================================
 # 9. ABAS DE NAVEGAÇÃO MODERNAS
 # ==========================================
-tab_dash, tab_plano, tab_reg, tab_hist, tab_certames = st.tabs([
+# Intercepta parâmetro de edição de sessão de forma segura (compatibilidade com URLs externas ou links diretos)
+if "edit_sess_id" in st.query_params:
+    st.session_state.modal_edit_sess_id = st.query_params["edit_sess_id"]
+    del st.query_params["edit_sess_id"]
+    st.session_state["target_nav_tab"] = "📅 Calendário de Estudos"
+
+tab_names = [
     "📊 Dashboard & Insights",
     "🗓️ Plano de Estudos (70/30)",
     "⏱️ Registrar Sessão & Cronômetro",
     "📅 Calendário de Estudos",
     "⚙️ Certames & Sincronização"
-])
+]
+
+tabs_kwargs = {}
+try:
+    import inspect
+    sig = inspect.signature(st.tabs)
+    if "key" in sig.parameters:
+        tabs_kwargs["key"] = "main_nav_tabs"
+    if "default" in sig.parameters and st.session_state.get("target_nav_tab") in tab_names:
+        tabs_kwargs["default"] = st.session_state.pop("target_nav_tab")
+except Exception:
+    pass
+
+tab_dash, tab_plano, tab_reg, tab_hist, tab_certames = st.tabs(tab_names, **tabs_kwargs)
 
 # ------------------------------------------
 # ABA 1: DASHBOARD & INSIGHTS
 # ------------------------------------------
 with tab_dash:
+    st.session_state["target_nav_tab"] = "📊 Dashboard & Insights"
     meta_dia = certame_ativo_obj.get("daily_target_hours", 2.0) if certame_ativo_obj else 2.0
     meta_sem = certame_ativo_obj.get("weekly_target_hours", 10.0) if certame_ativo_obj else 10.0
 
@@ -2053,6 +2161,7 @@ with tab_dash:
 # ABA 2: PLANO DE ESTUDOS (GRADE 70/30)
 # ------------------------------------------
 with tab_plano:
+    st.session_state["target_nav_tab"] = "🗓️ Plano de Estudos (70/30)"
     # 1. Comparativo Semana vs Trajetória Acumulada
     col_p_top1, col_p_top2 = st.columns(2)
 
@@ -2245,6 +2354,7 @@ with tab_plano:
 # ABA 3: REGISTRAR SESSÃO & CRONÔMETRO
 # ------------------------------------------
 with tab_reg:
+    st.session_state["target_nav_tab"] = "⏱️ Registrar Sessão & Cronômetro"
     # Feedback persistente de sessão salva
     if st.session_state.get("feedback_registro"):
         fb = st.session_state["feedback_registro"]
@@ -2759,16 +2869,12 @@ def modal_editar_sessao(sessao_id: str):
 # ABA 4: CALENDÁRIO INTERATIVO & GESTÃO (ESTILO ASSETI)
 # ------------------------------------------
 with tab_hist:
-    # Intercepta clique direto em chip de sessão via query_params
-    if "edit_sess_id" in st.query_params:
-        sess_param_id = st.query_params["edit_sess_id"]
-        del st.query_params["edit_sess_id"]
-        st.session_state.modal_edit_sess_id = sess_param_id
-        st.rerun()
+    st.session_state["target_nav_tab"] = "📅 Calendário de Estudos"
 
     # Se houver uma sessão disparada para edição via modal dialog
     if st.session_state.get("modal_edit_sess_id"):
-        modal_editar_sessao(st.session_state.modal_edit_sess_id)
+        sess_modal_id = st.session_state.pop("modal_edit_sess_id")
+        modal_editar_sessao(sess_modal_id)
 
     # 1. Barra de Controles e Filtros do Calendário (Estilo ASSETI)
     hoje_cal = get_current_date()
@@ -2903,68 +3009,55 @@ with tab_hist:
                 h_dia_fmt = format_hours_mins(min_dia / 60.0, short=True) if min_dia > 0 else ""
 
                 with cols[col_idx]:
-                    card_cls = "cal-day-cell"
-                    if is_other:
-                        card_cls += " other-month"
-                    if is_today:
-                        card_cls += " today"
+                    with st.container(border=True):
+                        num_cls = "today-num" if is_today else ""
+                        other_marker = '<div class="other-month-marker" style="display:none;"></div>' if is_other else ''
+                        num_opacity = 'opacity:0.4;' if is_other else ''
+                        badge_total = f'<span class="cal-day-total">{h_dia_fmt}</span>' if h_dia_fmt else ""
 
-                    num_cls = "today-num" if is_today else ""
-                    badge_total = f'<span class="cal-day-total">{h_dia_fmt}</span>' if h_dia_fmt else ""
-
-                    html_chips = ""
-                    for s in sess_do_dia:
-                        s_id = str(s.get("id"))
-                        s_mat = s.get("subject", "Geral")
-                        s_top = s.get("topic") or "Sem tópico"
-                        s_min = s.get("duration_min", 0)
-                        s_qt = int(s.get("questions_total", 0))
-                        s_qc = int(s.get("questions_correct", 0))
-                        s_acc = float(s.get("accuracy_pct", 0.0))
-                        s_type = s.get("study_type", "Geral")
-                        s_notes = s.get("notes") or "Sem observações"
-                        s_cert = s.get("certame_name", "Geral")
-
-                        chip_cls = "cal-event-chip"
-                        if "Básica" in s.get("block", "") or "Básic" in s_type:
-                            chip_cls += " basica"
-                        elif "Discursiva" in s.get("block", "") or "Discursiva" in s_type:
-                            chip_cls += " discursiva"
-                        elif "Revisão" in s_type:
-                            chip_cls += " revisao"
-
-                        tag_acc = f"🟢 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 80 else (f"🟡 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 65 else f"🔴 {s_acc:.0f}% ({s_qc}/{s_qt})") if s_qt > 0 else "⚪ Teoria"
-
-                        tooltip_html = (
-                            '<div class="cal-tooltip">'
-                            f'<div style="font-weight:700;font-size:0.86rem;color:#0F172A;border-bottom:1px solid #E2E8F0;padding-bottom:5px;margin-bottom:6px;">📖 {s_mat}</div>'
-                            f'<div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Tópico:</b> {s_top}</div>'
-                            f'<div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Certame:</b> {s_cert}</div>'
-                            f'<div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Duração:</b> {s_min} min ({format_hours_mins(s_min/60.0, short=True)})</div>'
-                            f'<div style="font-size:0.75rem;color:#475569;margin-bottom:4px;"><b>Desempenho:</b> {tag_acc}</div>'
-                            f'<div style="font-size:0.75rem;color:#475569;margin-bottom:6px;"><b>Modalidade:</b> {s_type}</div>'
-                            f'<div style="font-size:0.72rem;color:#64748B;background:#F8FAFC;padding:5px 7px;border-radius:6px;border:1px dashed #CBD5E1;"><b>Notas:</b> {s_notes[:85]}</div>'
-                            '<div style="margin-top:7px;font-size:0.7rem;font-weight:600;color:#4F46E5;text-align:center;">✏️ Clique na sessão para editar</div>'
-                            '</div>'
+                        st.markdown(
+                            f'<div class="cal-day-header">{other_marker}<span class="cal-day-number {num_cls}" style="{num_opacity}">{d_date.day}</span>{badge_total}</div>',
+                            unsafe_allow_html=True
                         )
 
-                        # O chip agora é uma tag <a> nativa com link direto e target _self, disparando o modal de edição ao clicar!
-                        html_chips += (
-                            f'<a href="?edit_sess_id={s_id}" target="_self" class="{chip_cls}">'
-                            f'<span class="cal-chip-title" title="{s_mat}: {s_top}">{s_mat}</span>'
-                            f'<div class="cal-chip-meta"><span>⏱️ {s_min}m</span><span>{tag_acc.split(" ")[0]} {s_acc:.0f}%</span></div>'
-                            f'{tooltip_html}'
-                            '</a>'
-                        )
+                        for s in sess_do_dia:
+                            s_id = str(s.get("id"))
+                            s_mat = s.get("subject", "Geral")
+                            s_top = s.get("topic") or "Sem tópico"
+                            s_min = s.get("duration_min", 0)
+                            s_qt = int(s.get("questions_total", 0))
+                            s_qc = int(s.get("questions_correct", 0))
+                            s_acc = float(s.get("accuracy_pct", 0.0))
+                            s_type = s.get("study_type", "Geral")
+                            s_notes = s.get("notes") or "Sem observações"
+                            s_cert = s.get("certame_name", "Geral")
 
-                    day_card_html = (
-                        f'<div class="{card_cls}">'
-                        f'<div class="cal-day-header"><span class="cal-day-number {num_cls}">{d_date.day}</span>{badge_total}</div>'
-                        f'<div class="cal-events-container">{html_chips}</div>'
-                        '</div>'
-                    )
+                            tipo_prefix = "geral"
+                            if "Básica" in s.get("block", "") or "Básic" in s_type:
+                                tipo_prefix = "basica"
+                            elif "Discursiva" in s.get("block", "") or "Discursiva" in s_type:
+                                tipo_prefix = "discursiva"
+                            elif "Revisão" in s_type:
+                                tipo_prefix = "revisao"
 
-                    st.markdown(day_card_html, unsafe_allow_html=True)
+                            tag_acc_short = f"🟢 {s_acc:.0f}%" if s_acc >= 80 else (f"🟡 {s_acc:.0f}%" if s_acc >= 65 else f"🔴 {s_acc:.0f}%") if s_qt > 0 else "⚪ Teoria"
+                            tag_acc_full = f"🟢 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 80 else (f"🟡 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 65 else f"🔴 {s_acc:.0f}% ({s_qc}/{s_qt})") if s_qt > 0 else "⚪ Teoria"
+
+                            btn_label = f"📖 **{s_mat}**  \n⏱️ {s_min}m • {tag_acc_short}"
+                            btn_help = (
+                                f"📖 Disciplina: {s_mat}\n"
+                                f"📌 Tópico: {s_top}\n"
+                                f"🎯 Certame: {s_cert}\n"
+                                f"⏱️ Duração: {s_min} min ({format_hours_mins(s_min/60.0, short=True)})\n"
+                                f"🎯 Desempenho: {tag_acc_full}\n"
+                                f"🏷️ Modalidade: {s_type}\n"
+                                f"📝 Notas: {s_notes}\n\n"
+                                f"✏️ Clique para editar esta sessão"
+                            )
+
+                            btn_key = f"cal_sess_{tipo_prefix}_{s_id}"
+                            if st.button(btn_label, key=btn_key, help=btn_help, use_container_width=True):
+                                modal_editar_sessao(s_id)
 
     # ------------------------------------------
     # VISUALIZAÇÃO 2: MODO LISTA / TABELA FILTRADA
@@ -3050,6 +3143,7 @@ with tab_hist:
 # ABA 5: GERENCIAR CERTAMES & SINCRONIZAÇÃO
 # ------------------------------------------
 with tab_certames:
+    st.session_state["target_nav_tab"] = "⚙️ Certames & Sincronização"
     # 1. Painel de Sincronização (Obsidian & GitHub) com Spinners e Feedback Pontual
     with st.container(border=True):
         st.markdown("""
