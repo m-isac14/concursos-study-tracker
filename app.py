@@ -706,6 +706,13 @@ st.markdown("""
         background-color: #F8FAFC !important;
     }
 
+        /* Modal de Edição Amplo e Harmônico */
+    div[data-testid="stDialog"] div[role="dialog"] {
+        border-radius: 18px !important;
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25) !important;
+        border: 1px solid #E2E8F0 !important;
+    }
+
     /* Cards de Sessões Interativos no Calendário (Botões Nativos sem reload de página) */
     div[class*="st-key-cal_sess_"] {
         margin-top: 3px !important;
@@ -2758,7 +2765,7 @@ with tab_reg:
 # ==========================================
 # MODAL DIALOG PARA EDIÇÃO DA SESSÃO DE ESTUDO
 # ==========================================
-@st.dialog("✏️ Editar Sessão de Estudo")
+@st.dialog("✏️ Editar Sessão de Estudo", width="large")
 def modal_editar_sessao(sessao_id: str):
     sess = next((s for s in st.session_state.sessions if str(s.get("id")) == str(sessao_id)), None)
     if not sess:
@@ -2768,18 +2775,18 @@ def modal_editar_sessao(sessao_id: str):
         return
 
     st.markdown(f"""
-    <div style="font-size:0.85rem;color:#64748B;margin-bottom:1rem;">
-        Edite os detalhes da sessão registrada em <b>{sess.get('date')}</b>. As alterações atualizam automaticamente o banco e o cofre Obsidian.
+    <div style="font-size:0.88rem;color:#64748B;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid #E2E8F0;">
+        Edite os detalhes da sessão registrada em <b>{sess.get('date')}</b>. As alterações atualizam automaticamente o banco de dados e o cofre Obsidian.
     </div>
     """, unsafe_allow_html=True)
 
     with st.form(key=f"form_edit_sess_{sessao_id}"):
-        col_c, col_d = st.columns([1.4, 1.0])
+        col_c, col_d = st.columns([1.5, 1.0], gap="medium")
         with col_c:
             certame_nomes = [c["name"] for c in st.session_state.certames]
             cur_c_nome = sess.get("certame_name", certame_nomes[0] if certame_nomes else "DPDF")
             idx_c = certame_nomes.index(cur_c_nome) if cur_c_nome in certame_nomes else 0
-            edit_certame_nome = st.selectbox("🎯 Certame:", certame_nomes, index=idx_c)
+            edit_certame_nome = st.selectbox("🎯 Certame / Foco:", certame_nomes, index=idx_c)
         with col_d:
             try:
                 cur_dt = datetime.strptime(sess.get("date", str(get_current_date())), "%Y-%m-%d").date()
@@ -2787,7 +2794,7 @@ def modal_editar_sessao(sessao_id: str):
                 cur_dt = get_current_date()
             edit_data = st.date_input("📅 Data da Sessão:", value=cur_dt)
 
-        col_m, col_t, col_type = st.columns([1.1, 1.2, 1.0])
+        col_m, col_t, col_type = st.columns([1.2, 1.4, 1.1], gap="medium")
         with col_m:
             edit_materia = st.text_input("📖 Disciplina:", value=sess.get("subject", ""))
         with col_t:
@@ -2798,7 +2805,7 @@ def modal_editar_sessao(sessao_id: str):
             idx_t = tipos.index(cur_tipo) if cur_tipo in tipos else 0
             edit_tipo = st.selectbox("🏷️ Modalidade:", tipos, index=idx_t)
 
-        col_h, col_min, col_qtot, col_qcor = st.columns(4)
+        col_h, col_min, col_qtot, col_qcor = st.columns(4, gap="medium")
         cur_min_tot = int(sess.get("duration_min", 60))
         with col_h:
             edit_h = st.number_input("⏱️ Horas:", min_value=0, max_value=24, value=cur_min_tot // 60, step=1)
@@ -2809,9 +2816,10 @@ def modal_editar_sessao(sessao_id: str):
         with col_qcor:
             edit_qcor = st.number_input("✅ Acertos:", min_value=0, max_value=500, value=int(sess.get("questions_correct", 0)), step=1)
 
-        edit_notas = st.text_area("📝 Caderno de Erros & Observações:", value=sess.get("notes", ""), height=100)
+        edit_notas = st.text_area("📝 Caderno de Erros & Observações (enviado ao Obsidian):", value=sess.get("notes", ""), height=120)
 
-        col_btn1, col_btn2, col_btn3 = st.columns([1.2, 1.0, 1.0])
+        st.markdown("<div style='margin-top:0.4rem;'></div>", unsafe_allow_html=True)
+        col_btn1, col_btn2, col_btn3 = st.columns([1.4, 1.0, 1.0], gap="medium")
         with col_btn1:
             salvar = st.form_submit_button("💾 Salvar Alterações", type="primary", use_container_width=True)
         with col_btn2:
