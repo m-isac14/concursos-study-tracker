@@ -688,62 +688,46 @@ st.markdown("""
     }
 
     /* ========================================================= */
-    /* GRID DO CALENDÁRIO: LINHAS COM ALTURA IGUAL AO MAIOR QUADRADO */
-    /* MIN-HEIGHT: 110px (1 SESSÃO), MAX-HEIGHT: 175px (2 SESSÕES + MAIS) */
+    /* GRID DO CALENDÁRIO: LINHAS COM ALTURA UNIFORME DEFINIDA VIA PYTHON */
     /* ========================================================= */
-    [data-testid="stHorizontalBlock"]:has(.cal-day-header) {
-        align-items: stretch !important;
-        margin-bottom: 0.35rem !important;
-    }
-    [data-testid="stHorizontalBlock"]:has(.cal-day-header) > [data-testid="column"],
-    [data-testid="column"]:has(.cal-day-header) {
-        display: flex !important;
-        flex-direction: column !important;
-        align-self: stretch !important;
-    }
-    [data-testid="stHorizontalBlock"]:has(.cal-day-header) > [data-testid="column"] > div,
-    [data-testid="column"]:has(.cal-day-header) > div {
-        display: flex !important;
-        flex-direction: column !important;
-        flex: 1 1 100% !important;
-        height: 100% !important;
-    }
-    [data-testid="stHorizontalBlock"]:has(.cal-day-header) > [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"],
-    [data-testid="column"]:has(.cal-day-header) [data-testid="stVerticalBlockBorderWrapper"] {
-        display: flex !important;
-        flex-direction: column !important;
-        flex: 1 1 100% !important;
-        height: 100% !important;
-        min-height: 110px !important;
-        max-height: 175px !important;
+    div[class*="st-key-cal_day_box_"] {
         padding: 7px 8px !important;
         border-radius: 12px !important;
+        border: 1px solid #E2E8F0 !important;
+        background-color: #FFFFFF !important;
         overflow: hidden !important;
         box-sizing: border-box !important;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        margin-bottom: 0.35rem !important;
     }
-    [data-testid="stHorizontalBlock"]:has(.cal-day-header) > [data-testid="column"] [data-testid="stVerticalBlockBorderWrapper"]:hover,
-    [data-testid="column"]:has(.cal-day-header) [data-testid="stVerticalBlockBorderWrapper"]:hover {
+    div[class*="st-key-cal_day_box_"]:hover {
         border-color: #CBD5E1 !important;
         box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
     }
-    [data-testid="stHorizontalBlock"]:has(.cal-day-header) > [data-testid="column"] [data-testid="stVerticalBlock"],
-    [data-testid="column"]:has(.cal-day-header) [data-testid="stVerticalBlock"] {
-        display: flex !important;
-        flex-direction: column !important;
-        flex: 1 1 auto !important;
-        height: 100% !important;
-        gap: 0.22rem !important;
-    }
-
     /* Estilo de dia de hoje e outro mês */
-    [data-testid="column"] div:has(.today-num) {
+    div[class*="st-key-cal_day_box_"]:has(.today-num) {
         border: 2px solid #4F46E5 !important;
         background-color: #FAF5FF !important;
     }
-    [data-testid="column"] div:has(.other-month-marker) {
+    div[class*="st-key-cal_day_box_"]:has(.other-month-marker) {
         opacity: 0.45 !important;
         background-color: #F8FAFC !important;
+    }
+    /* Espaçamento reduzido e harmônico entre as sessões no calendário */
+    div[class*="st-key-cal_day_box_"] [data-testid="stVerticalBlock"] {
+        gap: 0.22rem !important;
+    }
+    /* Ocultar barra de rolagem dos cards do calendário */
+    div[class*="st-key-cal_day_box_"],
+    div[class*="st-key-cal_day_box_"] * {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+    div[class*="st-key-cal_day_box_"]::-webkit-scrollbar,
+    div[class*="st-key-cal_day_box_"] *::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
     }
 
     /* Modal Dialog com Backdrop Blur e Sombra Refinada (Sobreposição elegante) */
@@ -3219,9 +3203,19 @@ with tab_hist:
         cal_obj = calendar.Calendar(firstweekday=0)
         month_days = list(cal_obj.itermonthdates(cur_ano, cur_mes))
 
-        # Renderização semana a semana
+        # Renderização semana a semana com altura padronizada igual ao maior quadrado da linha
         for week_start_idx in range(0, len(month_days), 7):
             week_days = month_days[week_start_idx : week_start_idx + 7]
+
+            # Altura padronizada da linha: igual ao dia com maior altura da linha (mínimo 115px, máximo 180px)
+            max_sess_semana = max([len(sessoes_por_dia.get(d.strftime("%Y-%m-%d"), [])) for d in week_days])
+            if max_sess_semana >= 3:
+                altura_linha = 180  # 2 sessões + botão (+ X mais ▾) [Imagem 1]
+            elif max_sess_semana == 2:
+                altura_linha = 150  # 2 sessões sem botão
+            else:
+                altura_linha = 115  # 1 sessão ou vazio [Imagem 2 - piso mínimo padrão]
+
             cols = st.columns(7)
 
             for col_idx, d_date in enumerate(week_days):
@@ -3234,7 +3228,7 @@ with tab_hist:
                 h_dia_fmt = format_hours_mins(min_dia / 60.0, short=True) if min_dia > 0 else ""
 
                 with cols[col_idx]:
-                    with st.container(border=True):
+                    with st.container(border=True, height=altura_linha, key=f"cal_day_box_{d_str}"):
                         num_cls = "today-num" if is_today else ""
                         other_marker = '<div class="other-month-marker" style="display:none;"></div>' if is_other else ''
                         num_opacity = 'opacity:0.4;' if is_other else ''
