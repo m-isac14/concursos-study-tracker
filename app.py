@@ -210,6 +210,38 @@ st.markdown("""
         color: #4F46E5;
         border: 1px solid rgba(199, 210, 254, 0.9);
     }
+    .pill-sky, .pill-basica {
+        background-color: rgba(2, 132, 199, 0.08);
+        color: #0284C7;
+        border: 1px solid rgba(186, 230, 253, 0.9);
+    }
+    .pill-orange, .pill-especifica {
+        background-color: rgba(234, 88, 12, 0.08);
+        color: #EA580C;
+        border: 1px solid rgba(254, 215, 170, 0.9);
+    }
+    .seg-bar-wrap {
+        width: 100%;
+        margin-top: 0.35rem;
+    }
+    .seg-bar-track {
+        width: 100%;
+        height: 8px;
+        background-color: #F1F5F9;
+        border-radius: 999px;
+        display: flex;
+        overflow: hidden;
+    }
+    .seg-bar-esp {
+        background-color: #EA580C;
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    .seg-bar-bas {
+        background-color: #0284C7;
+        height: 100%;
+        transition: width 0.3s ease;
+    }
     .pill-emerald {
         background-color: rgba(16, 185, 129, 0.1);
         color: #059669;
@@ -396,7 +428,7 @@ st.markdown("""
     .block-item {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
-        border-left: 4px solid #4F46E5;
+        border-left: 4px solid #EA580C;
         border-radius: 10px;
         padding: 0.8rem 1rem;
         margin-bottom: 0.55rem;
@@ -408,8 +440,11 @@ st.markdown("""
         box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
         transform: translateY(-1px);
     }
+    .block-item.especifica {
+        border-left-color: #EA580C;
+    }
     .block-item.basica {
-        border-left-color: #10B981;
+        border-left-color: #0284C7;
     }
     .block-item.discursiva {
         border-left-color: #7C3AED;
@@ -625,7 +660,10 @@ st.markdown("""
         border-color: #CBD5E1;
     }
     .cal-event-chip.basica {
-        border-left-color: #10B981;
+        border-left-color: #0284C7;
+    }
+    .cal-event-chip.especifica {
+        border-left-color: #EA580C;
     }
     .cal-event-chip.discursiva {
         border-left-color: #7C3AED;
@@ -787,21 +825,22 @@ st.markdown("""
         border-top: 1px dashed #E2E8F0 !important;
     }
 
-    /* Cards de Sessões Interativos no Calendário (Espaçamento reduzido e harmônico) */
+    /* Cards de Sessões Interativos no Calendário (Espaçamento uniforme, altura padronizada 52px e alinhamento estrito à esquerda) */
     div[class*="st-key-cal_sess_"] {
         margin-top: 1px !important;
-        margin-bottom: 1px !important;
+        margin-bottom: 2px !important;
     }
     div[class*="st-key-cal_sess_"] button {
         background-color: #F8FAFC !important;
         border: 1px solid #E2E8F0 !important;
-        border-left: 3.5px solid #4F46E5 !important;
+        border-left: 3.5px solid #EA580C !important;
         border-radius: 8px !important;
-        padding: 4px 7px !important;
-        min-height: 38px !important;
-        height: auto !important;
+        padding: 4px 6px !important;
+        min-height: 52px !important;
+        height: 52px !important;
+        max-height: 52px !important;
         text-align: left !important;
-        justify-content: flex-start !important;
+        justify-content: center !important;
         align-items: flex-start !important;
         display: flex !important;
         flex-direction: column !important;
@@ -809,30 +848,85 @@ st.markdown("""
         transition: all 0.15s ease !important;
         width: 100% !important;
         cursor: pointer !important;
+        overflow: hidden !important;
     }
     div[class*="st-key-cal_sess_"] button:hover {
         transform: translateY(-1px) !important;
         box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08) !important;
         border-color: #CBD5E1 !important;
-        background-color: #EEF2FF !important;
     }
-    div[class*="st-key-cal_sess_"] button p,
-    div[class*="st-key-cal_sess_"] button span,
+
+    /* Container Markdown interno do Streamlit Button - Alinhamento estrito à esquerda e 100% largura */
+    div[class*="st-key-cal_sess_"] button div[data-testid="stMarkdownContainer"],
+    div[class*="st-key-cal_sess_"] button div[class*="stMarkdownContainer"],
+    div[class*="st-key-cal_sess_"] button > div,
     div[class*="st-key-cal_sess_"] button div {
-        font-size: 0.73rem !important;
-        color: #1E293B !important;
-        line-height: 1.25 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        text-align: left !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Tipografia e espaçamento entre o nome da matéria e os indicadores inferiores */
+    div[class*="st-key-cal_sess_"] button p {
+        text-align: left !important;
+        align-self: flex-start !important;
+        width: 100% !important;
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1.2 !important;
+    }
+    div[class*="st-key-cal_sess_"] button p:first-child {
+        font-size: 0.72rem !important;
+        font-weight: 600 !important;
+        color: #0F172A !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
         text-align: left !important;
         margin: 0 !important;
         padding: 0 !important;
-        white-space: normal !important;
-        word-break: break-word !important;
     }
+    /* Espaçamento levemente aumentado entre o nome da matéria e a linha inferior */
+    div[class*="st-key-cal_sess_"] button p:last-child {
+        font-size: 0.69rem !important;
+        font-weight: 500 !important;
+        color: #475569 !important;
+        margin-top: 3.5px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        text-align: left !important;
+        margin-bottom: 0 !important;
+        padding: 0 !important;
+    }
+    div[class*="st-key-cal_sess_"] button span {
+        text-align: left !important;
+    }
+
+    /* Cores das Bordas: Básicas = Azul (#0284C7) | Específicas = Laranja (#EA580C) */
     div[class*="st-key-cal_sess_basica_"] button {
-        border-left-color: #10B981 !important;
+        border-left-color: #0284C7 !important;
     }
     div[class*="st-key-cal_sess_basica_"] button:hover {
-        background-color: #ECFDF5 !important;
+        background-color: #F0F9FF !important;
+        border-color: #BAE6FD !important;
+    }
+    div[class*="st-key-cal_sess_especifica_"] button,
+    div[class*="st-key-cal_sess_geral_"] button {
+        border-left-color: #EA580C !important;
+    }
+    div[class*="st-key-cal_sess_especifica_"] button:hover,
+    div[class*="st-key-cal_sess_geral_"] button:hover {
+        background-color: #FFF7ED !important;
+        border-color: #FED7AA !important;
     }
     div[class*="st-key-cal_sess_discursiva_"] button {
         border-left-color: #7C3AED !important;
@@ -845,9 +939,6 @@ st.markdown("""
     }
     div[class*="st-key-cal_sess_revisao_"] button:hover {
         background-color: #FFFBEB !important;
-    }
-    div[class*="st-key-cal_sess_geral_"] button {
-        border-left-color: #4F46E5 !important;
     }
     /* Botão sem fundo "+ X" com texto em negrito e espaçamento superior reduzido */
     div[class*="st-key-btn_day_more_"] {
@@ -1388,7 +1479,7 @@ def create_donut_7030(horas_esp, horas_bas, label_center="Específicas"):
             labels=["Meta Específicas (70%)", "Meta Básicas (30%)"],
             values=[70, 30],
             hole=0.72,
-            marker=dict(colors=["#E2E8F0", "#F1F5F9"], line=dict(color="#FFFFFF", width=2)),
+            marker=dict(colors=["#FED7AA", "#BAE6FD"], line=dict(color="#FFFFFF", width=2)),
             textinfo="none",
             hoverinfo="label"
         ))
@@ -1402,7 +1493,7 @@ def create_donut_7030(horas_esp, horas_bas, label_center="Específicas"):
             hole=0.72,
             sort=False,
             direction="clockwise",
-            marker=dict(colors=["#4F46E5", "#10B981"], line=dict(color="#FFFFFF", width=2)),
+            marker=dict(colors=["#EA580C", "#0284C7"], line=dict(color="#FFFFFF", width=2)),
             textinfo="none",
             customdata=[format_hours_mins(horas_esp, short=True), format_hours_mins(horas_bas, short=True)],
             hovertemplate="<b>%{label}</b>: %{customdata} estudadas (%{percent})<extra></extra>"
@@ -1808,11 +1899,31 @@ inicio_mes = hoje.replace(day=1)
 def eh_basica(row):
     blk = str(row.get("block", "")).lower()
     sub = str(row.get("subject", "")).lower()
-    return (
-        "básico" in blk or "basico" in blk or "gerais" in blk
-        or "portuguesa" in sub or "840" in sub or "lodf" in sub
-        or "penha" in sub or "socorros" in sub or "mulheres" in sub
-    )
+    stype = str(row.get("study_type", "")).lower()
+
+    if any(k in blk or k in stype for k in ["básico", "basico", "básica", "basica", "gerais"]):
+        if not any(k in blk or k in stype for k in ["específic", "especific", "técnic", "tecnic"]):
+            return True
+
+    termos_basicos = [
+        "portugues", "português", "redação oficial", "redacao oficial",
+        "regime jurídico", "regime juridico", "servidores", "840",
+        "lei orgânica", "lei organica", "lodf", "828", "distrital",
+        "maria da penha", "penha", "11.340",
+        "conhecimentos do df", "realidade do df", "ride",
+        "mulheres", "primeiros socorros", "socorros",
+        "direito constitucional", "constitucional",
+        "direito administrativo",
+        "administração pública", "administracao publica", "políticas públicas", "politicas publicas",
+        "raciocínio lógico", "raciocinio logico", "lógico-matemático", "logico-matematico",
+        "língua inglesa", "lingua inglesa", "inglês", "ingles",
+        "ética pública", "etica publica", "ética no serviço", "etica no servico",
+        "auditoria governamental", "controle interno"
+    ]
+    if any(t in sub for t in termos_basicos):
+        return True
+
+    return False
 
 def calcular_streak(df_ref):
     """Calcula a sequência atual de dias consecutivos estudados (Streak) e total de dias ativos."""
@@ -2144,11 +2255,12 @@ with tab_dash:
             </div>
             """, unsafe_allow_html=True)
 
-            b1_pill_cls = "pill-emerald" if b1_done else "pill-indigo"
+            b1_pill_cls = "pill-emerald" if b1_done else "pill-orange"
             b1_pill_txt = "✅ Concluído" if b1_done else f"Bloco 1 • {item_hoje['bloco_1_horas']:.0f}h • {item_hoje['bloco_1_tipo']}"
 
-            b2_cls_box = "basica" if "Básica" in item_hoje["bloco_2_tipo"] else ("discursiva" if "Discursiva" in item_hoje["bloco_2_tipo"] else "")
-            b2_pill_cls = "pill-emerald" if b2_done else ("pill-emerald" if "Básica" in item_hoje["bloco_2_tipo"] else "pill-indigo")
+            b2_is_bas = "Básica" in item_hoje["bloco_2_tipo"]
+            b2_cls_box = "basica" if b2_is_bas else ("discursiva" if "Discursiva" in item_hoje["bloco_2_tipo"] else "especifica")
+            b2_pill_cls = "pill-emerald" if b2_done else ("pill-sky" if b2_is_bas else "pill-orange")
             b2_pill_txt = "✅ Concluído" if b2_done else f"Bloco 2 • {item_hoje['bloco_2_horas']:.0f}h • {item_hoje['bloco_2_tipo']}"
 
             st.markdown(f"""
@@ -2191,11 +2303,11 @@ with tab_dash:
                 st.markdown(f"""
                 <div style="padding-top:0.35rem;">
                     <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:0.2rem;">
-                        <span style="color:#4F46E5;font-weight:600;">● Específicas ({pct_esp_sem:.0f}%)</span>
+                        <span style="color:#EA580C;font-weight:600;">● Específicas ({pct_esp_sem:.0f}%)</span>
                         <span style="color:#0F172A;font-weight:600;">{format_hours_mins(horas_esp_sem, short=True)} <span style="color:#64748B;font-weight:400;">/ 7h</span></span>
                     </div>
                     <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:0.45rem;">
-                        <span style="color:#059669;font-weight:600;">● Básicas ({pct_bas_sem:.0f}%)</span>
+                        <span style="color:#0284C7;font-weight:600;">● Básicas ({pct_bas_sem:.0f}%)</span>
                         <span style="color:#0F172A;font-weight:600;">{format_hours_mins(horas_bas_sem, short=True)} <span style="color:#64748B;font-weight:400;">/ 3h</span></span>
                     </div>
                     <div class="seg-bar-wrap">
@@ -2304,8 +2416,8 @@ with tab_plano:
             with cp2:
                 st.markdown(f"""
                 <div style="padding-top:0.5rem;font-size:0.85rem;color:#334155;">
-                    <p style="margin-bottom:0.4rem;">🔹 <b>Específicas (Peso 2 + Discursivas):</b> <br><code>{format_hours_mins(horas_esp_sem)}</code> realizadas de <code>7 horas</code> ({pct_esp_sem:.1f}%)</p>
-                    <p style="margin-bottom:0.4rem;">🔸 <b>Conhecimentos Básicos (Peso 1):</b> <br><code>{format_hours_mins(horas_bas_sem)}</code> realizadas de <code>3 horas</code> ({pct_bas_sem:.1f}%)</p>
+                    <p style="margin-bottom:0.4rem;"><span style="color:#EA580C;">🟧</span> <b>Específicas (Peso 2 + Discursivas):</b> <br><code>{format_hours_mins(horas_esp_sem)}</code> realizadas de <code>7 horas</code> ({pct_esp_sem:.1f}%)</p>
+                    <p style="margin-bottom:0.4rem;"><span style="color:#0284C7;">🟦</span> <b>Conhecimentos Básicos (Peso 1):</b> <br><code>{format_hours_mins(horas_bas_sem)}</code> realizadas de <code>3 horas</code> ({pct_bas_sem:.1f}%)</p>
                     <p style="margin-bottom:0;color:#64748B;font-size:0.78rem;">Total na semana: <b>{format_hours_mins(tot_sem_7030)}</b> líquidas</p>
                 </div>
                 """, unsafe_allow_html=True)
@@ -2324,8 +2436,8 @@ with tab_plano:
             with cp4:
                 st.markdown(f"""
                 <div style="padding-top:0.5rem;font-size:0.85rem;color:#334155;">
-                    <p style="margin-bottom:0.4rem;">🔹 <b>Total em Específicas:</b> <br><code>{format_hours_mins(horas_esp_tot)}</code> acumuladas ({pct_esp_tot:.1f}%)</p>
-                    <p style="margin-bottom:0.4rem;">🔸 <b>Total em Básicas:</b> <br><code>{format_hours_mins(horas_bas_tot)}</code> acumuladas ({pct_bas_tot:.1f}%)</p>
+                    <p style="margin-bottom:0.4rem;"><span style="color:#EA580C;">🟧</span> <b>Total em Específicas:</b> <br><code>{format_hours_mins(horas_esp_tot)}</code> acumuladas ({pct_esp_tot:.1f}%)</p>
+                    <p style="margin-bottom:0.4rem;"><span style="color:#0284C7;">🟦</span> <b>Total em Básicas:</b> <br><code>{format_hours_mins(horas_bas_tot)}</code> acumuladas ({pct_bas_tot:.1f}%)</p>
                     <p style="margin-bottom:0;color:#64748B;font-size:0.78rem;">Total acumulado no filtro: <b>{format_hours_mins(tot_tot_7030)}</b></p>
                 </div>
                 """, unsafe_allow_html=True)
@@ -2390,14 +2502,14 @@ with tab_plano:
                     <div class="block-item">
                         <div class="block-item-header">
                             <span class="block-subject">{item['bloco_1_materia']}</span>
-                            <span class="pill pill-indigo">Bloco 1 • {item['bloco_1_horas']:.0f}h • {item['bloco_1_tipo']}</span>
+                            <span class="pill pill-orange">Bloco 1 • {item['bloco_1_horas']:.0f}h • {item['bloco_1_tipo']}</span>
                         </div>
                         <p class="block-topic">{item['bloco_1_topico']}</p>
                     </div>
-                    <div class="block-item {'basica' if 'Básica' in item['bloco_2_tipo'] else ('discursiva' if 'Discursiva' in item['bloco_2_tipo'] else '')}">
+                    <div class="block-item {'basica' if 'Básica' in item['bloco_2_tipo'] else 'especifica'}">
                         <div class="block-item-header">
                             <span class="block-subject">{item['bloco_2_materia']}</span>
-                            <span class="pill {'pill-emerald' if 'Básica' in item['bloco_2_tipo'] else 'pill-indigo'}">Bloco 2 • {item['bloco_2_horas']:.0f}h • {item['bloco_2_tipo']}</span>
+                            <span class="pill {'pill-sky' if 'Básica' in item['bloco_2_tipo'] else 'pill-orange'}">Bloco 2 • {item['bloco_2_horas']:.0f}h • {item['bloco_2_tipo']}</span>
                         </div>
                         <p class="block-topic">{item['bloco_2_topico']}</p>
                     </div>
@@ -2929,13 +3041,9 @@ def modal_sessoes_dia(d_str: str):
             s_notes = (s.get("notes") or "").strip()
             s_cert = s.get("certame_name", "Geral")
 
-            cor_borda = "#4F46E5"
-            if "Básica" in s.get("block", "") or "Básic" in s_type:
-                cor_borda = "#10B981"
-            elif "Discursiva" in s.get("block", "") or "Discursiva" in s_type:
-                cor_borda = "#7C3AED"
-            elif "Revisão" in s_type:
-                cor_borda = "#F59E0B"
+            is_bas = eh_basica(s)
+            cor_borda = "#0284C7" if is_bas else "#EA580C"
+            pill_tipo_bloco = '<span class="pill pill-sky" style="font-size:0.72rem;">🟦 Básica</span>' if is_bas else '<span class="pill pill-orange" style="font-size:0.72rem;">🟧 Específica</span>'
 
             tag_acc = f"🟢 {s_acc:.0f}% ({s_qc}/{s_qt} questões)" if s_acc >= 80 else (f"🟡 {s_acc:.0f}% ({s_qc}/{s_qt} questões)" if s_acc >= 65 else f"🔴 {s_acc:.0f}% ({s_qc}/{s_qt} questões)") if s_qt > 0 else "⚪ Teoria & Conceitos"
             dur_fmt = format_hours_mins(s_min / 60.0, short=True)
@@ -2948,7 +3056,8 @@ def modal_sessoes_dia(d_str: str):
                     <div style="border-left:4px solid {cor_borda};padding-left:10px;">
                         <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:3px;">
                             <span style="font-weight:700;font-size:0.95rem;color:#0F172A;">📖 {s_mat}</span>
-                            <span class="pill pill-indigo" style="font-size:0.72rem;">🏷️ {s_type}</span>
+                            {pill_tipo_bloco}
+                            <span class="pill pill-slate" style="font-size:0.72rem;">🏷️ {s_type}</span>
                             <span class="status-pill-badge" style="font-size:0.72rem;">⏱️ {dur_fmt}</span>
                             <span class="status-pill-badge" style="font-size:0.72rem;">{tag_acc}</span>
                         </div>
@@ -3221,14 +3330,14 @@ with tab_hist:
         for week_start_idx in range(0, len(month_days), 7):
             week_days = month_days[week_start_idx : week_start_idx + 7]
 
-            # Altura padronizada da linha: igual ao dia com maior altura da linha (mínimo 115px, máximo 180px)
+            # Altura padronizada da linha: igual ao dia com maior altura da linha (mínimo 115px, máximo 185px)
             max_sess_semana = max([len(sessoes_por_dia.get(d.strftime("%Y-%m-%d"), [])) for d in week_days])
             if max_sess_semana >= 3:
-                altura_linha = 180  # 2 sessões + botão (+ X mais ▾) [Imagem 1]
+                altura_linha = 185  # 2 sessões (52px cada) + botão + gaps + header
             elif max_sess_semana == 2:
-                altura_linha = 150  # 2 sessões sem botão
+                altura_linha = 155  # 2 sessões (52px cada) + gaps + header
             else:
-                altura_linha = 115  # 1 sessão ou vazio [Imagem 2 - piso mínimo padrão]
+                altura_linha = 115  # 1 sessão ou vazio [piso mínimo padrão]
 
             cols = st.columns(7)
 
@@ -3269,19 +3378,13 @@ with tab_hist:
                             s_notes = s.get("notes") or "Sem observações"
                             s_cert = s.get("certame_name", "Geral")
 
-                            tipo_prefix = "geral"
-                            if "Básica" in s.get("block", "") or "Básic" in s_type:
-                                tipo_prefix = "basica"
-                            elif "Discursiva" in s.get("block", "") or "Discursiva" in s_type:
-                                tipo_prefix = "discursiva"
-                            elif "Revisão" in s_type:
-                                tipo_prefix = "revisao"
+                            tipo_prefix = "basica" if eh_basica(s) else "especifica"
 
                             tag_acc_short = f"🟢 {s_acc:.0f}%" if s_acc >= 80 else (f"🟡 {s_acc:.0f}%" if s_acc >= 65 else f"🔴 {s_acc:.0f}%") if s_qt > 0 else "⚪ Teoria"
                             tag_acc_full = f"🟢 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 80 else (f"🟡 {s_acc:.0f}% ({s_qc}/{s_qt})" if s_acc >= 65 else f"🔴 {s_acc:.0f}% ({s_qc}/{s_qt})") if s_qt > 0 else "⚪ Teoria"
 
                             dur_sess_fmt = format_hours_mins(s_min / 60.0, short=True)
-                            btn_label = f"📖 **{s_mat}**  \n⏱️ {dur_sess_fmt} • {tag_acc_short}"
+                            btn_label = f"📖 **{s_mat}**\n\n⏱️ {dur_sess_fmt} • {tag_acc_short}"
 
                             # Omissão de nomes de categorias para exibição limpa e objetiva: Ícone + Valor (sem modalidade)
                             notas_clean = s_notes.strip() if s_notes and s_notes.strip() not in ["Sem observações", "Sem observação", "None", ""] else "Sem anotações"
