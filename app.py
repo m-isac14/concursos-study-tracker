@@ -601,7 +601,7 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 6px;
+        margin-bottom: 3px !important;
     }
     .cal-day-number {
         font-size: 0.85rem;
@@ -728,13 +728,16 @@ st.markdown("""
     /* ========================================================= */
     /* GRID DO CALENDÁRIO: LINHAS COM ALTURA UNIFORME DEFINIDA VIA PYTHON */
     /* ========================================================= */
-    div[class*="st-key-cal_day_box_"] {
-        padding: 7px 8px !important;
+    div[class*="st-key-cal_day_box_"],
+    div[class*="st-key-cal_day_box_"] [data-testid="stVerticalBlockBorderWrapper"] {
+        padding: 6px 7px !important;
         border-radius: 12px !important;
-        border: 1px solid #E2E8F0 !important;
         background-color: #FFFFFF !important;
-        overflow: hidden !important;
         box-sizing: border-box !important;
+    }
+    div[class*="st-key-cal_day_box_"] {
+        border: 1px solid #E2E8F0 !important;
+        overflow: hidden !important;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         margin-bottom: 0.35rem !important;
     }
@@ -751,9 +754,13 @@ st.markdown("""
         opacity: 0.45 !important;
         background-color: #F8FAFC !important;
     }
-    /* Espaçamento reduzido e harmônico entre as sessões no calendário */
+    /* Espaçamento otimizado entre as sessões no calendário */
     div[class*="st-key-cal_day_box_"] [data-testid="stVerticalBlock"] {
-        gap: 0.22rem !important;
+        gap: 0.18rem !important;
+    }
+    div[class*="st-key-cal_day_box_"] [data-testid="stElementContainer"] {
+        margin: 0px !important;
+        padding: 0px !important;
     }
     /* Ocultar barra de rolagem dos cards do calendário */
     div[class*="st-key-cal_day_box_"],
@@ -940,10 +947,10 @@ st.markdown("""
     div[class*="st-key-cal_sess_revisao_"] button:hover {
         background-color: #FFFBEB !important;
     }
-    /* Botão sem fundo "+ X" com texto em negrito e espaçamento superior reduzido */
+    /* Botão sem fundo "+ X" com texto em negrito e espaçamento superior ajustado */
     div[class*="st-key-btn_day_more_"] {
-        margin-top: -4px !important;
-        margin-bottom: 0px !important;
+        margin-top: 1px !important;
+        margin-bottom: 2px !important;
         padding-top: 0px !important;
     }
     div[class*="st-key-btn_day_more_"] button,
@@ -3330,12 +3337,12 @@ with tab_hist:
         for week_start_idx in range(0, len(month_days), 7):
             week_days = month_days[week_start_idx : week_start_idx + 7]
 
-            # Altura padronizada da linha: igual ao dia com maior altura da linha (mínimo 115px, máximo 185px)
+            # Altura padronizada da linha: igual ao dia com maior altura da linha (mínimo 115px, máximo 208px)
             max_sess_semana = max([len(sessoes_por_dia.get(d.strftime("%Y-%m-%d"), [])) for d in week_days])
             if max_sess_semana >= 3:
-                altura_linha = 185  # 2 sessões (52px cada) + botão + gaps + header
+                altura_linha = 208  # 2 sessões (52px cada) + botão "+ X" (22px) + gaps + header com folga total
             elif max_sess_semana == 2:
-                altura_linha = 155  # 2 sessões (52px cada) + gaps + header
+                altura_linha = 176  # 2 sessões (52px cada) + gaps + header com folga total (impede corte do 2º card)
             else:
                 altura_linha = 115  # 1 sessão ou vazio [piso mínimo padrão]
 
